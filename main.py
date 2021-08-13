@@ -25,7 +25,7 @@ parser.add_argument('--init_weight', type=bool,default=True,help='init weight on
 
 parser.add_argument('--lr', type=float,default=1e-3,help='learning rate')
 parser.add_argument('--batch_size', type=int,default=128,help='batch size')
-parser.add_argument('--wd', type=float,default=1e-7,help='weight decay')
+parser.add_argument('--wd', type=float,default=1e-4,help='weight decay')
 
 parser.add_argument('--k', type=int,default=10,help='number of mixtures')
 parser.add_argument('--sig_max', type=float,default=1,help='sig max')
