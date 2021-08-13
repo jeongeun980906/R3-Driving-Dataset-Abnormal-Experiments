@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import random
-from helper.utils import print_n_txt
+from tools.utils import print_n_txt
 
 from MDN.loss import mdn_loss,mdn_sample,mdn_uncertainties
 from MDN.network import MixtureDensityNetwork

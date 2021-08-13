@@ -1,6 +1,6 @@
 /dataset
 /res
 __pycache__
-helper/__pycache__
+tools/__pycache__
 MDN/__pycache__
 .python-version
