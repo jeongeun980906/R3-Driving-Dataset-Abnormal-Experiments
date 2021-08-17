@@ -29,6 +29,10 @@ class Logger():
         self.aupr.append(aupr)
         
     def save(self):
+        try:
+            os.remove(self.path)
+        except:
+            pass
         data = {}
         with open(self.path,'w') as json_file:
             data['train_nll']=self.train_acc

@@ -9,7 +9,7 @@ class total_dataset(data.Dataset):
         self.x = mix.x
         self.y = mix.y
         self.e_label = mix.e_label
-        self.is_expert = mix.is_expert
+        self.case = mix.case
 
     def __getitem__(self, index):
         '''

@@ -45,7 +45,7 @@ class MixturesOfGaussianLayer(nn.Module):
 
 class MixtureDensityNetwork(nn.Module):
     def __init__(self,name='mdn',x_dim=1,y_dim=2,k=5,h_dims=[32,32],actv=nn.Tanh(),sig_max=1,
-                 mu_min=-3.0,mu_max=+3.0):
+                 mu_min=-3.0,mu_max=+3.0,dropout=0.3):
         super(MixtureDensityNetwork,self).__init__()
         self.name = name
         self.x_dim = x_dim
@@ -56,6 +56,7 @@ class MixtureDensityNetwork(nn.Module):
         self.sig_max = sig_max
         self.mu_min = mu_min
         self.mu_max = mu_max
+        self.dropout_rate = dropout
         self.build_model()
 
     def build_model(self):
@@ -64,7 +65,7 @@ class MixtureDensityNetwork(nn.Module):
         for h_dim in self.h_dims:
             hidden_layer = LinActv(in_dim=in_dim,out_dim=h_dim,actv=self.actv)
             self.layers.append(hidden_layer)
-            dropout = nn.Dropout(p=0.3)
+            dropout = nn.Dropout(p=self.dropout_rate)
             self.layers.append(dropout)
             in_dim = h_dim
         # Final GMM

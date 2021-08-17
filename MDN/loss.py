@@ -42,7 +42,7 @@ def mdn_sample(pi,mu,sigma):
 
 def mdn_uncertainties(pi, mu, sigma):
     # Compute Epistemic Uncertainty
-    M = 0.1
+    M = 0.1# 0.1
     pi = torch.softmax(M*pi,1) # (optional) heuristics 
     pi_usq = torch.unsqueeze(pi,2) # [N x K x 1]
     pi_exp = pi_usq.expand_as(sigma) # [N x K x D]

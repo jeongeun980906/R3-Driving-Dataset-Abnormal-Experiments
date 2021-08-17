@@ -200,6 +200,7 @@ seq_list = [(50,2450),
 MAX_N_OBJECTS = 5
 N = 96
 exp_list = [i for i in range(0,8)]
+#exp_list = [0,3,4,7] #FMTC [1,5] Highway [2,6] Road
 neg_list = [i for i in range(8,96)]
 
 def load_expert_dataset(exp_path):
@@ -303,6 +304,28 @@ def load_negative_dataset(neg_path):
     
     return torch.FloatTensor(rt), torch.FloatTensor(act)
 
+def get_neg_case():
+    '''
+    0 ~ 15: Unstable 1
+    28 ~ 37: Cross Road Accident 2
+    Others: Straight Road Accident 3
+    '''
+    res=[0]*4600
+    idx=0
+    for e,data_index in enumerate(neg_list):
+        st = seq_list[data_index][0]
+        en = seq_list[data_index][1]
+        size = en-st
+        for i in range(size):
+            if e<16:
+                res[idx] = 1
+            elif e>27 and e<38:
+                res[idx] = 2
+            else:
+                res[idx] = 3
+            idx+=1
+    return torch.FloatTensor(res)
+
 torch.manual_seed(0)
 
 class MixQuality():
@@ -313,6 +336,7 @@ class MixQuality():
         self.neg = neg
         self.e_in, self.e_target = load_expert_dataset(exp_path)
         self.n_in, self.n_target = load_negative_dataset(neg_path)
+        self.n_case = get_neg_case()
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
 
@@ -334,22 +358,27 @@ class MixQuality():
             e_target = self.e_target[e_idx]
             n_in = self.n_in[n_idx]
             n_target = self.n_target[n_idx]
+            case = self.n_case[n_idx]
             self.e_label = e_idx.size(0)
             self.x = torch.cat((e_in,n_in),dim=0)
             self.y = torch.cat((e_target,n_target),dim=0)
-            self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
+            #self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
+            self.case = torch.cat((torch.zeros_like(e_idx),case),dim=0)
         else:
             e_idx = rand_e_idx[20000:]
             n_idx = rand_n_idx[4500:]
             if not self.neg:
                 self.x = self.e_in[e_idx]
                 self.y = self.e_target[e_idx]
-                self.is_expert = torch.ones_like(e_idx)
+                self.case = torch.zeros_like(e_idx)
+                #self.is_expert = torch.ones_like(e_idx)
             else:
                 self.x = self.n_in[n_idx]
                 self.y = self.n_target[n_idx]
-                self.is_expert = torch.zeros_like(n_idx)
+                self.case = self.n_case[n_idx]
+                #self.is_expert = torch.zeros_like(n_idx)
             self.e_label = e_idx.size(0)
+
     def normaize(self):
         self.x = self.x.sub_(self.mean_in).div_(self.std_in)
         self.y = self.y.sub_(self.mean_t).div_(self.std_t)
