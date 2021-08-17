@@ -24,7 +24,7 @@ class solver():
     def load_model(self,args):
         self.model = MixtureDensityNetwork(
                     name='mdn',x_dim=32, y_dim=3,k=args.k,h_dims=[64,64],actv=nn.ReLU(),sig_max=args.sig_max,
-                    mu_min=-1,mu_max=+1,dropout=args.dropout).to(self.device)
+                    mu_min=-args.sig_max,mu_max=+args.sig_max,dropout=args.dropout).to(self.device)
 
     def init_param(self):
         self.model.init_param()
