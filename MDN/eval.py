@@ -76,9 +76,9 @@ def eval_ood_mdn(model,data_iter,device):
             epis_unct = torch.mean(epis_unct,dim=-1)
             alea_unct = torch.mean(alea_unct,dim=-1)
             
-            epis_ += list(epis_unct.cpu().numpy())
-            alea_ += list(alea_unct.cpu().numpy())
-            pi_entropy_ += list(pi_entropy.cpu().numpy())
+            epis_ += epis_unct.cpu().numpy().tolist()
+            alea_ += alea_unct.cpu().numpy().tolist()
+            pi_entropy_ += pi_entropy.cpu().numpy().tolist()
 
             n_total += batch_in.size(0)
         model.train() # back to train mode 

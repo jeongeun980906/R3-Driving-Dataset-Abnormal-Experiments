@@ -9,11 +9,14 @@ parser.add_argument('--query_step', type=int,default=10,help='query step')
 
 args = parser.parse_args()
 
+
 method = ['epistemic','aleatoric','pi_entropy','random']
+case_name = 3
 
 test_nll={}
 train_nll = {}
-query_ood = {}
+ood = {}
+ind = {}
 auroc = {}
 aupr = {}
 for m in method:
@@ -22,58 +25,77 @@ for m in method:
         data = json.load(f)
     test_nll[m] = data['test_nll']
     train_nll[m] = data['train_nll']
-    auroc[m] = data['auroc']
-    aupr[m] = data['aupr']
-    temp = data['query']
-    qo = []
-    for key in temp:
-        a = int(key)
-        if a>0:
-            a = temp[key][1].count(1)
-            b = temp[key][1].count(2)
-            c = temp[key][1].count(3)
-            qo.append([a,b,c])
-            query_size = len(temp[key][1])
-            #print(query_size)
-    query_ood[m] = np.asarray(qo).T/query_size
+    auroc[m] = np.asarray(data['auroc']).T
+    aupr[m] = np.asarray(data['aupr']).T
+    temp1 = data['id_eval']
+    temp2 = data['ood_eval']
+    key = str(args.query_step)
+    ood[m] = temp2[key]
+    ind[m]= temp1[key]
+    case = np.asarray(data['neg_case'])
 f.close()
 
-color = [['lightcoral','indianred','firebrick'],['palegreen','limegreen','seagreen']
-        ,['skyblue','cornflowerblue','mediumblue'],['plum','hotpink','purple']]
+color = [['lightcoral','oodianred','firebrick'],['palegreen','limegreen','seagreen']
+        ,['skyblue','royalblue','mediumblue'],['plum','hotpink','purple']]
+
+'''
+Plot NLL, AUROC, AUPR
+'''
 
 x_range = [i for i in range(args.query_step)]
-plt.figure(figsize=(8,8))
-plt.suptitle("MDN Active Learning Result")
-plt.subplot(2,2,1)
+plt.figure(figsize=(8,12))
+grid = plt.GridSpec(4,2)
+plt.suptitle("CASE {} MDN Active Learning Result".format(case_name))
+plt.subplot(grid[0,0:2])
 plt.title("NLL")
 for i,m in enumerate(method):
     #plt.plot(test_acc[m],label=m)
     plt.plot(test_nll[m],label=m,marker='o',markersize=3,color=color[i][-1])
 plt.xlabel("Query Step")
 plt.ylabel("NLL")
-plt.legend()
+leg = plt.legend()
+leg.set_title('Query Method')
 plt.xticks(x_range)
 
-plt.subplot(2,2,2)
-plt.title("Queried Negative Data")
+for i,a in enumerate(['epis_','alea_','pi_entropy_']):
+    plt.subplot(4,2,2*i+3)
+    plt.title("AUROC over Query Step \nEval Method: {}".format(a))
+    for j,m in enumerate(method):
+        plt.plot(auroc[m][i],marker='o',markersize=3,color=color[j][2])
 
-for e,m in enumerate(method):
-    offset=0
-    x_range2 = [i-0.2*(e-2) for i in range(args.query_step)]
-    for i in range(3):
-        plt.bar(x_range2,query_ood[m][i],bottom=offset,width = 0.2,color=color[e][i])
-        offset += query_ood[m][i]
-        
-plt.subplot(2,2,3)
-plt.title("AUROC over Query Step")
-for i,m in enumerate(method):
-    plt.plot(auroc[m],marker='o',markersize=3,color=color[i][2])
-
-plt.subplot(2,2,4)
-plt.title("AUPR over Query Step")
-for i,m in enumerate(method):
-    plt.plot(aupr[m],marker='o',markersize=3,color=color[i][2])
+    plt.subplot(4,2,2*i+4)
+    plt.title("AUPR over Query Step\n Eval Method: {}".format(a))
+    for j,m in enumerate(method):
+        plt.plot(aupr[m][i],marker='o',markersize=3,color=color[j][2])
 
 plt.tight_layout()
 plt.savefig("./res/mdn_{}.png".format(args.id))
 #plt.show()
+
+'''
+Plot Histogram by case
+'''
+
+plt.figure(figsize=(10,10))
+plt.suptitle("CASE {} Histogram".format(case_name))
+for i,m in enumerate(method):
+    for k,j in enumerate(['epis_','alea_','pi_entropy_']):
+        plt.subplot(4,3,3*i+k+1)
+        plt.title("Query Method: {} \nEval Method: {}".format(m,j[:-1]))
+        ood_ar = np.asarray(ood[m][j])
+        case1 = np.where(case==1)[0]
+        case1 = ood_ar[case1]
+        case2 = np.where(case==2)[0]
+        case2 = ood_ar[case2]
+        case3 = np.where(case==3)[0]
+        case3 = ood_ar[case3]
+        id_ar = np.asarray(ind[m][j])
+        # print(np.mean(id_ar),np.mean(case1),np.mean(case2),np.mean(case3))
+        plt.hist(id_ar.tolist(),label='Expert', color='b',alpha=0.5)
+        plt.hist(case3.tolist(),label='straight road accident',color='orangered', alpha=0.5)
+        plt.hist(case1.tolist(),label='unstable',color='r', alpha=0.5)
+        plt.hist(case2.tolist(),label='cross road accident',color='purple', alpha=0.5)
+        if k==2:
+            plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.)
+plt.tight_layout()
+plt.savefig("./res/mdn_hist_{}".format(args.id))

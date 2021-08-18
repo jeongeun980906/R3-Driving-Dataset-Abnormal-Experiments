@@ -199,17 +199,27 @@ seq_list = [(50,2450),
 
 MAX_N_OBJECTS = 5
 N = 96
-exp_list = [i for i in range(0,8)]
-#exp_list = [0,3,4,7] #FMTC [1,5] Highway [2,6] Road
+#exp_list = [i for i in range(0,8)]
+# exp_list = [2,6] #Road [0,3,4,7] #FMTC [1,5] #Highway
 neg_list = [i for i in range(8,96)]
 
-def load_expert_dataset(exp_path):
+def load_expert_dataset(exp_path,exp_case):
     """
     return
     dataset : N * STATE_DIM
     N means # of data
     STATE_DIM means dimension of state (5 + MAX_N_OBJECTS * 6)
     """
+    exp_list=[]
+    for i in exp_case:
+        if i==1: # FMTC
+            exp_list.extend([0,3,4,7])
+        elif i==2: # HighWay
+            exp_list.extend([1,5])
+        elif i==3: # ROAD
+            exp_list.extend([2,6])
+        else:
+            raise NotImplementedError
     rt = []
     act = []
     for data_index in exp_list:
@@ -228,7 +238,7 @@ def load_expert_dataset(exp_path):
             data.append(state['v'])
             data_act.append(state['ax'])
             data_act.append(state['omega'])
-            data_act.append(state['decision'])
+            data.append(state['decision'])
             data.append(state['deviation'])
             n_objects = len(state['objects'])
             for i in range(MAX_N_OBJECTS):
@@ -279,7 +289,7 @@ def load_negative_dataset(neg_path):
             data.append(state['v'])
             data_act.append(state['ax'])
             data_act.append(state['omega'])
-            data_act.append(state['decision'])
+            data.append(state['decision'])
             data.append(state['deviation'])
             n_objects = len(state['objects'])
             for i in range(MAX_N_OBJECTS):
@@ -329,12 +339,12 @@ def get_neg_case():
 torch.manual_seed(0)
 
 class MixQuality():
-    def __init__(self,root = "./dataset/mixquality/",train=True,neg=False):
+    def __init__(self,root = "./dataset/mixquality/",exp_case=[1,2,3],train=True,neg=False):
         exp_path = root + "exp/"
         neg_path = root + "neg/"
         self.train=train
         self.neg = neg
-        self.e_in, self.e_target = load_expert_dataset(exp_path)
+        self.e_in, self.e_target = load_expert_dataset(exp_path,exp_case)
         self.n_in, self.n_target = load_negative_dataset(neg_path)
         self.n_case = get_neg_case()
         self.e_size = self.e_in.size(0)
@@ -350,32 +360,39 @@ class MixQuality():
 
     def load(self):
         rand_e_idx = torch.randperm(self.e_size)
-        rand_n_idx = torch.randperm(self.n_size)
+        # rand_n_idx = torch.randperm(self.n_size)
         if self.train:
-            e_idx = rand_e_idx[:20000]
-            n_idx = rand_n_idx[:4500]
+            e_idx = rand_e_idx[:5000] #8000
+            # n_idx = rand_n_idx[:4500]
             e_in = self.e_in[e_idx]
             e_target = self.e_target[e_idx]
-            n_in = self.n_in[n_idx]
-            n_target = self.n_target[n_idx]
-            case = self.n_case[n_idx]
+            # n_in = self.n_in[n_idx]
+            # n_target = self.n_target[n_idx]
+            # case = self.n_case[n_idx]
             self.e_label = e_idx.size(0)
-            self.x = torch.cat((e_in,n_in),dim=0)
-            self.y = torch.cat((e_target,n_target),dim=0)
-            #self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
-            self.case = torch.cat((torch.zeros_like(e_idx),case),dim=0)
+            self.x = e_in
+            self.y = e_target
+            self.case = torch.zeros_like(e_idx)
+            # self.x = torch.cat((e_in,n_in),dim=0)
+            # self.y = torch.cat((e_target,n_target),dim=0)
+            # self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
+            # self.case = torch.cat((torch.zeros_like(e_idx),case),dim=0)
         else:
-            e_idx = rand_e_idx[20000:]
-            n_idx = rand_n_idx[4500:]
+            e_idx = rand_e_idx[5000:]
+            # n_idx = rand_n_idx[4500:]
             if not self.neg:
                 self.x = self.e_in[e_idx]
                 self.y = self.e_target[e_idx]
                 self.case = torch.zeros_like(e_idx)
                 #self.is_expert = torch.ones_like(e_idx)
             else:
-                self.x = self.n_in[n_idx]
-                self.y = self.n_target[n_idx]
-                self.case = self.n_case[n_idx]
+                self.x = self.n_in
+                self.y = self.n_target
+                self.case = self.n_case
+                print(self.case.shape,self.x.shape)
+                # self.x = self.n_in[n_idx]
+                # self.y = self.n_target[n_idx]
+                # self.case = self.n_case[n_idx]
                 #self.is_expert = torch.zeros_like(n_idx)
             self.e_label = e_idx.size(0)
 

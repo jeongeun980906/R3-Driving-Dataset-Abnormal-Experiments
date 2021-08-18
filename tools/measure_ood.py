@@ -15,13 +15,3 @@ def measure(id_eval,ood_eval,plot=False):
         plt.hist(ood_eval,label='ood')
         plt.savefig('temp.png')
     return auroc,aupr
-
-def get_method(method):
-    if method == 'epistemic':
-        return 'epis_'
-    elif method == 'aleatoric':
-        return 'alea_'
-    elif method == 'pi_entropy':
-        return 'pi_entropy_'
-    else:
-        return None
