@@ -350,10 +350,10 @@ class MixQuality():
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
 
-        self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0))
-        self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0))
-        self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0))
-        self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0))
+        self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
+        self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
+        self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
+        self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
 
         self.load()
         self.normaize()
@@ -397,8 +397,9 @@ class MixQuality():
             self.e_label = e_idx.size(0)
 
     def normaize(self):
-        self.x = self.x.sub_(self.mean_in).div_(self.std_in)
-        self.y = self.y.sub_(self.mean_t).div_(self.std_t)
+        self.x = (self.x - self.mean_in)/(self.std_in)
+        self.y = (self.y - self.mean_t)/(self.std_t)
+        #print(self.x,self.y)
 
 if __name__ == '__main__':
     m = MixQuality(root='../dataset/mixquality/',train=False,neg=True)

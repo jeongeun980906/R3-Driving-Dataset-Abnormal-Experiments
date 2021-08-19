@@ -6,12 +6,12 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--id', type=int,default=1,help='id')
 parser.add_argument('--query_step', type=int,default=10,help='query step')
+parser.add_argument('--exp_case', nargs='+', type=int,default=[1,2,3],help='expert case')
 
 args = parser.parse_args()
 
-
 method = ['epistemic','aleatoric','pi_entropy','random']
-case_name = 3
+case_name = args.exp_case
 
 test_nll={}
 train_nll = {}
@@ -20,7 +20,7 @@ ind = {}
 auroc = {}
 aupr = {}
 for m in method:
-    DIR = './res/mdn_{}/{}/log.json'.format(m,args.id)
+    DIR = './res/mdn_{}/{}_{}/log.json'.format(m,args.exp_case,args.id)
     with open(DIR) as f:
         data = json.load(f)
     test_nll[m] = data['test_nll']

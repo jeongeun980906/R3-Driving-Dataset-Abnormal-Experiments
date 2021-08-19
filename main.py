@@ -64,8 +64,8 @@ AL_solver.init_param()
 label_iter,unlabel_iter = p.subset_dataset(torch.zeros(size=(0,1),dtype=torch.int64).squeeze(1))
 # [init, total-init]
 
-DIR = './res/mdn_{}/{}/'.format(args.query_method,args.id)
-DIR2 = './res/mdn_{}/{}/ckpt/'.format(args.query_method,args.id)
+DIR = './res/mdn_{}/{}_{}/'.format(args.query_method,args.exp_case,args.id)
+DIR2 = './res/mdn_{}/{}_{}/ckpt/'.format(args.query_method,args.exp_case,args.id)
 try:
     os.mkdir('./res/mdn_{}'.format(args.query_method))
 except:
@@ -101,7 +101,6 @@ for i in range(args.query_step):
     label_iter,unlabel_iter = p.subset_dataset(new)
     id_eval = eval_ood_mdn(AL_solver.model,test_e_iter,'cuda')
     ood_eval = eval_ood_mdn(AL_solver.model,test_n_iter,'cuda')
-    print(len(ood_eval['alea_']))
     auroc, aupr = [],[]
     for m in method:
         temp1, temp2 = measure(id_eval[m],ood_eval[m])

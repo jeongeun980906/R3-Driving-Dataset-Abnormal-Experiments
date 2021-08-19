@@ -20,6 +20,7 @@ class solver():
         self.wd = args.wd
         self.lr_rate = args.lr_rate
         self.lr_step = args.lr_step
+        self.CLIP = 0.1
 
     def load_model(self,args):
         self.model = MixtureDensityNetwork(
@@ -47,6 +48,7 @@ class solver():
                 loss = torch.mean(loss_out['nll'])
                 optimizer.zero_grad() # reset gradient
                 loss.backward() # back-propagation
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
                 optimizer.step() # optimizer update
                 # Track losses
                 loss_sum += loss

@@ -1,4 +1,5 @@
 import math
+from numpy import NaN
 import torch
 from torch.autograd import Variable
 import torch.distributions as TD
@@ -13,13 +14,25 @@ def mdn_loss(pi,mu,sigma,data):
     sigma: [N x K x D]
     data: [N x D]
     """
+    if torch.isnan(pi).any() or torch.isnan(sigma).any() or torch.isnan(mu).any():
+        print("input")
+        raise ValueError
     data_usq = torch.unsqueeze(data,1) # [N x 1 x D]
     data_exp = data_usq.expand_as(sigma) # [N x K x D]
     probs = ONEOVERSQRT2PI * torch.exp(-0.5 * ((data_exp-mu)/sigma)**2) / sigma # [N x K x D]
+    if torch.isnan(probs).any():
+        print("probs")
+        raise ValueError
     probs_prod = torch.prod(probs,2) # [N x K]
+    if torch.isnan(probs_prod).any():
+        print("product")
+        raise ValueError
     prob = torch.sum(probs_prod*pi,dim=1) # [N]
     prob = torch.clamp(prob,min=1e-8) # Clamp if the prob is to small
     nll = -torch.log(prob) # [N] 
+    if torch.isnan(nll).any():
+        print("nll")
+        raise ValueError
     out = {'data_usq':data_usq,'data_exp':data_exp,
            'probs':probs,'probs_prod':probs_prod,'prob':prob,'nll':nll}
     return out

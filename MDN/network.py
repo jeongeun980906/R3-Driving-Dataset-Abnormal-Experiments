@@ -39,7 +39,7 @@ class MixturesOfGaussianLayer(nn.Module):
         if self.sig_max is None:
             sigma = torch.exp(sigma) # [N x K x D]
         else:
-            sigma = self.sig_max * torch.sigmoid(sigma) # [N x K x D]
+            sigma = self.sig_max * (torch.sigmoid(sigma) + 1e-8) # [N x K x D]
         out = {'pi':pi,'mu':mu,'sigma':sigma}
         return out
 
