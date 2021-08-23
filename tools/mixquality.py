@@ -373,7 +373,7 @@ class MixQuality():
         rand_e_idx = torch.randperm(self.e_size)
         # rand_n_idx = torch.randperm(self.n_size)
         if self.train:
-            e_idx = rand_e_idx[:5000] #8000
+            e_idx = rand_e_idx[:int(self.e_size*0.8)] #8000
             # n_idx = rand_n_idx[:4500]
             e_in = self.e_in[e_idx]
             e_target = self.e_target[e_idx]
@@ -389,7 +389,7 @@ class MixQuality():
             # self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
             # self.case = torch.cat((torch.zeros_like(e_idx),case),dim=0)
         else:
-            e_idx = rand_e_idx[5000:]
+            e_idx = rand_e_idx[int(self.e_size*0.8):]
             # n_idx = rand_n_idx[4500:]
             if not self.neg:
                 self.x = self.e_in[e_idx]
@@ -400,7 +400,6 @@ class MixQuality():
                 self.x = self.n_in
                 self.y = self.n_target
                 self.case = self.n_case
-                print(self.case.shape,self.x.shape)
                 # self.x = self.n_in[n_idx]
                 # self.y = self.n_target[n_idx]
                 # self.case = self.n_case[n_idx]
