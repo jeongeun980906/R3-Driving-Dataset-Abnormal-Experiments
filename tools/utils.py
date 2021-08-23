@@ -12,8 +12,8 @@ def print_n_txt(_f,_chars,_addNewLine=True,_DO_PRINT=True):
 class Logger():
     def __init__(self,path,init_indicies,neg_case=None):
         self.path = path
-        self.train_acc = []
-        self.test_acc = []
+        self.train_l2 = []
+        self.test_l2 = []
         self.auroc = []
         self.aupr = []
         self.idx = {}
@@ -23,9 +23,9 @@ class Logger():
         self.neg_case = neg_case.numpy().tolist()
         self.flag=1
     
-    def append(self,train_acc,test_acc,new,id_eval,ood_eval,auroc,aupr):
-        self.train_acc.append(train_acc)
-        self.test_acc.append(test_acc)
+    def append(self,train_l2,test_l2,new,id_eval,ood_eval,auroc,aupr):
+        self.train_l2.append(train_l2)
+        self.test_l2.append(test_l2)
         self.idx[self.flag]=new.numpy().tolist() # What is queried 
         self.id_eval[self.flag]=id_eval # OOD EVAL
         self.ood_eval[self.flag]=ood_eval
@@ -39,8 +39,8 @@ class Logger():
             pass
         data = {}
         with open(self.path,'w') as json_file:
-            data['train_nll']=self.train_acc
-            data['test_nll']=self.test_acc
+            data['train_l2']=self.train_l2
+            data['test_l2']=self.test_l2
             data['query']= self.idx
             data['neg_case'] = self.neg_case
             data['id_eval'] = self.id_eval

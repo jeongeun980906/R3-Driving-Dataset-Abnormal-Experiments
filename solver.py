@@ -36,8 +36,8 @@ class solver():
         optimizer = optim.Adam(self.model.parameters(),lr=self.lr,weight_decay=self.wd,eps=1e-8)
         #scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,60,90,120,150,180], gamma=args.lr_rate)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=self.lr_rate, step_size=self.lr_step)
-        train_nll = []
-        test_nll = []
+        train_l2 = []
+        test_l2 = []
         for epoch in range(self.EPOCH):
             loss_sum = 0.0
             #time.sleep(1)
@@ -58,8 +58,8 @@ class solver():
             test_in_out = test_eval_mdn(self.model,test_exp_iter,'cuda')
             test_ood_out = test_eval_mdn(self.model,test_neg_iter,'cuda')
 
-            strTemp = ("epoch: [%d/%d] loss: [%.3f] train_nll:[%.4f] test_nll: [%.4f]"
-                        %(epoch,self.EPOCH,loss_avg,train_out['nll'],test_in_out['nll']))
+            strTemp = ("epoch: [%d/%d] loss: [%.3f] train_l2:[%.4f] test_l2: [%.4f]"
+                        %(epoch,self.EPOCH,loss_avg,train_out['l2_norm'],test_in_out['l2_norm']))
             print_n_txt(_f=f,_chars=strTemp)
 
             strTemp =  ("[ID] epis avg: [%.3f] alea avg: [%.3f] pi_entropy avg: [%.3f]"%
@@ -69,14 +69,14 @@ class solver():
             strTemp =  ("[OOD] epis avg: [%.3f] alea avg: [%.3f] pi_entropy avg: [%.3f]"%
                     (test_ood_out['epis'],test_ood_out['alea'],test_ood_out['pi_entropy']))
             print_n_txt(_f=f,_chars=strTemp)
-            train_nll.append(train_out['nll'])
-            test_nll.append(test_in_out['nll'])
+            train_l2.append(train_out['l2_norm'])
+            test_l2.append(test_in_out['l2_norm'])
         if epoch>5:
-            train_nll = train_nll[-5:]
-            test_nll = test_nll[-5:]
-        train_nll = sum(train_nll)/len(train_nll)
-        test_nll = sum(test_nll)/len(test_nll)
-        return train_nll,test_nll
+            train_l2 = train_l2[-5:]
+            test_l2 = test_l2[-5:]
+        train_l2 = sum(train_l2)/len(train_l2)
+        test_l2 = sum(test_l2)/len(test_l2)
+        return train_l2,test_l2
 
     def query_data(self,unlabel_iter,unl_size=None):
         out = query_mdn(self.model,unlabel_iter,'cuda')

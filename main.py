@@ -32,6 +32,7 @@ parser.add_argument('--lr_rate', type=float,default=0.5,help='learning rate sche
 parser.add_argument('--lr_step', type=int,default=50,help='learning rate schedular rate')
 
 parser.add_argument('--k', type=int,default=10,help='number of mixtures')
+parser.add_argument('--norm', type=int,default=1,help='normalize dataset elementwise')
 parser.add_argument('--sig_max', type=float,default=1,help='sig max')
 
 args = parser.parse_args()
@@ -48,13 +49,13 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 device='cuda'
 
-p = AL_pool(root=args.root,num_init=args.init_pool,exp_case=args.exp_case)
+p = AL_pool(root=args.root,num_init=args.init_pool,norm=args.norm,exp_case=args.exp_case)
 torch.manual_seed(SEED)
-test_e_dataset = total_dataset(root = args.root, train=False,neg=False,exp_case=args.exp_case)
+test_e_dataset = total_dataset(root = args.root, train=False,neg=False,norm=args.norm,exp_case=args.exp_case)
 test_e_iter = torch.utils.data.DataLoader(test_e_dataset, batch_size=args.batch_size, 
                         shuffle=False)
 torch.manual_seed(SEED)
-test_n_dataset = total_dataset(root = args.root, train=False,neg=True,exp_case=args.exp_case)
+test_n_dataset = total_dataset(root = args.root, train=False,neg=True,norm=args.norm,exp_case=args.exp_case)
 test_n_iter = torch.utils.data.DataLoader(test_n_dataset, batch_size=args.batch_size, 
                         shuffle=False)
 

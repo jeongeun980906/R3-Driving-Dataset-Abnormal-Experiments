@@ -4,8 +4,8 @@ import copy
 import random
 
 class AL_pool():
-    def __init__(self,root='./dataset',num_init=100,exp_case=[1,2,3]):
-        self.basedata=total_dataset(root=root,exp_case=exp_case)
+    def __init__(self,root='./dataset',num_init=100,exp_case=[1,2,3],norm=True):
+        self.basedata=total_dataset(root=root,norm=norm,exp_case=exp_case)
         self.batch_size=128
         self.expert_size = self.basedata.e_label
         self.total_size = self.basedata.__len__()

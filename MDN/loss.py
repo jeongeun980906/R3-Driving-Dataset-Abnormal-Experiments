@@ -7,6 +7,30 @@ import torch.distributions as TD
 ONEOVERSQRT2PI = 1.0 / math.sqrt(2*math.pi)
 device = 'cuda'
 
+def mdn_eval(pi,mu,sigma,data):
+    """
+    pi:      [N x K]
+    mu:      [N x K x D]
+    sigma:   [N x K x D]
+    data: [N x D]
+    """
+    max_idx = torch.argmax(pi,dim=1) # [N]
+    mu      = torch.softmax(mu,dim=2) #[N x K x D]
+
+    pi_usq = torch.unsqueeze(pi,2) # [N x K x 1]
+    pi_exp = pi_usq.expand_as(sigma) # [N x K x D]
+    
+    idx_gather = max_idx.unsqueeze(dim=-1).repeat(1,mu.shape[2]).unsqueeze(1) # [N x 1 x D]
+    mu_sel = torch.gather(mu,dim=1,index=idx_gather).squeeze(dim=1) # [N x D]
+    mu_prime = torch.sum(torch.mul(pi_exp,mu),dim=1)
+    max_pi_dis = torch.sum((mu_sel-data)**2,dim=1)
+    mean_dis = torch.sum((mu_prime-data)**2,dim=1)
+    out = {
+        'l2_max': max_pi_dis,
+        'l2_mean':mean_dis
+           }
+    return out
+
 def mdn_loss(pi,mu,sigma,data):
     """
     pi: [N x K]
@@ -14,25 +38,13 @@ def mdn_loss(pi,mu,sigma,data):
     sigma: [N x K x D]
     data: [N x D]
     """
-    if torch.isnan(pi).any() or torch.isnan(sigma).any() or torch.isnan(mu).any():
-        print("input")
-        raise ValueError
     data_usq = torch.unsqueeze(data,1) # [N x 1 x D]
     data_exp = data_usq.expand_as(sigma) # [N x K x D]
     probs = ONEOVERSQRT2PI * torch.exp(-0.5 * ((data_exp-mu)/sigma)**2) / sigma # [N x K x D]
-    if torch.isnan(probs).any():
-        print("probs")
-        raise ValueError
     probs_prod = torch.prod(probs,2) # [N x K]
-    if torch.isnan(probs_prod).any():
-        print("product")
-        raise ValueError
     prob = torch.sum(probs_prod*pi,dim=1) # [N]
     prob = torch.clamp(prob,min=1e-8) # Clamp if the prob is to small
     nll = -torch.log(prob) # [N] 
-    if torch.isnan(nll).any():
-        print("nll")
-        raise ValueError
     out = {'data_usq':data_usq,'data_exp':data_exp,
            'probs':probs,'probs_prod':probs_prod,'prob':prob,'nll':nll}
     return out

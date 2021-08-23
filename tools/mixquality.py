@@ -97,9 +97,11 @@ data_name_list = ['0729_exp_gunmin_FMTC'
                 ,'0729_neg_wooseok_46'
                 ,'0729_neg_wooseok_47'
                 ,'0729_neg_wooseok_50_1'
-                ,'0729_neg_wooseok_50_2']
-
-
+                ,'0729_neg_wooseok_50_2'
+                ,'0813_exp_jeongwoo_road_1'
+                ,'0813_exp_jeongwoo_road_2'
+                ,'0815_exp_jeongwoo_highway_1'
+                ,'0815_exp_jeongwoo_highway_2']
 seq_list = [(50,2450),
             (6000,9000),
             (5000,8000),
@@ -195,14 +197,17 @@ seq_list = [(50,2450),
             (170,190),
             (160,190),
             (30,130),
-            (170,220)]
+            (170,220),
+            (1400,4400),
+            (14000,17000),
+            (1400,4400),
+            (5500,8500)]
 
 MAX_N_OBJECTS = 5
 N = 96
 #exp_list = [i for i in range(0,8)]
 # exp_list = [2,6] #Road [0,3,4,7] #FMTC [1,5] #Highway
 neg_list = [i for i in range(8,96)]
-
 def load_expert_dataset(exp_path,exp_case):
     """
     return
@@ -215,9 +220,9 @@ def load_expert_dataset(exp_path,exp_case):
         if i==1: # FMTC
             exp_list.extend([0,3,4,7])
         elif i==2: # HighWay
-            exp_list.extend([1,5])
+            exp_list.extend([1,5,98,99])
         elif i==3: # ROAD
-            exp_list.extend([2,6])
+            exp_list.extend([2,6,96,97])
         else:
             raise NotImplementedError
     rt = []
@@ -339,7 +344,7 @@ def get_neg_case():
 torch.manual_seed(0)
 
 class MixQuality():
-    def __init__(self,root = "./dataset/mixquality/",exp_case=[1,2,3],train=True,neg=False):
+    def __init__(self,root = "./dataset/mixquality/",exp_case=[1,2,3],train=True,neg=False,norm=True):
         exp_path = root + "exp/"
         neg_path = root + "neg/"
         self.train=train
@@ -349,12 +354,18 @@ class MixQuality():
         self.n_case = get_neg_case()
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
+        self.norm = norm
 
-        self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
-        self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
-        self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
-        self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
-
+        if self.norm:
+            self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
+            self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
+            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
+            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
+        else:
+            self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0))
+            self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0))
+            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0))
+            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0))
         self.load()
         self.normaize()
 
@@ -397,8 +408,12 @@ class MixQuality():
             self.e_label = e_idx.size(0)
 
     def normaize(self):
-        self.x = (self.x - self.mean_in)/(self.std_in)
-        self.y = (self.y - self.mean_t)/(self.std_t)
+        if self.norm:
+            self.x = (self.x - self.mean_in)/(self.std_in)
+            self.y = (self.y - self.mean_t)/(self.std_t)
+        else:
+            self.x = self.x.sub_(self.mean_in).div_(self.std_in)
+            self.y = self.y.sub(self.mean_t).div_(self.std_t)
         #print(self.x,self.y)
 
 if __name__ == '__main__':

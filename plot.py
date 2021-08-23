@@ -13,8 +13,8 @@ args = parser.parse_args()
 method = ['epistemic','aleatoric','pi_entropy','random']
 case_name = args.exp_case
 
-test_nll={}
-train_nll = {}
+test_l2={}
+train_l2 = {}
 ood = {}
 ind = {}
 auroc = {}
@@ -23,8 +23,8 @@ for m in method:
     DIR = './res/mdn_{}/{}_{}/log.json'.format(m,args.exp_case,args.id)
     with open(DIR) as f:
         data = json.load(f)
-    test_nll[m] = data['test_nll']
-    train_nll[m] = data['train_nll']
+    test_l2[m] = data['test_l2']
+    train_l2[m] = data['train_l2']
     auroc[m] = np.asarray(data['auroc']).T
     aupr[m] = np.asarray(data['aupr']).T
     temp1 = data['id_eval']
@@ -47,12 +47,12 @@ plt.figure(figsize=(8,12))
 grid = plt.GridSpec(4,2)
 plt.suptitle("CASE {} MDN Active Learning Result".format(case_name))
 plt.subplot(grid[0,0:2])
-plt.title("NLL")
+plt.title("L2")
 for i,m in enumerate(method):
     #plt.plot(test_acc[m],label=m)
-    plt.plot(test_nll[m],label=m,marker='o',markersize=3,color=color[i][-1])
+    plt.plot(test_l2[m],label=m,marker='o',markersize=3,color=color[i][-1])
 plt.xlabel("Query Step")
-plt.ylabel("NLL")
+plt.ylabel("L2")
 leg = plt.legend()
 leg.set_title('Query Method')
 plt.xticks(x_range)
@@ -62,20 +62,19 @@ for i,a in enumerate(['epis_','alea_','pi_entropy_']):
     plt.title("AUROC over Query Step \nEval Method: {}".format(a))
     for j,m in enumerate(method):
         plt.plot(auroc[m][i],marker='o',markersize=3,color=color[j][2])
-
+    plt.ylim([0.0,1])
     plt.subplot(4,2,2*i+4)
     plt.title("AUPR over Query Step\n Eval Method: {}".format(a))
     for j,m in enumerate(method):
         plt.plot(aupr[m][i],marker='o',markersize=3,color=color[j][2])
-
+    plt.ylim([0.0,1])
 plt.tight_layout()
-plt.savefig("./res/mdn_{}.png".format(args.id))
+plt.savefig("./res/mdn_{}_{}.png".format(case_name,args.id))
 #plt.show()
 
 '''
 Plot Histogram by case
 '''
-
 plt.figure(figsize=(10,10))
 plt.suptitle("CASE {} Histogram".format(case_name))
 for i,m in enumerate(method):
@@ -98,4 +97,4 @@ for i,m in enumerate(method):
         if k==2:
             plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.)
 plt.tight_layout()
-plt.savefig("./res/mdn_hist_{}".format(args.id))
+plt.savefig("./res/mdn_hist_{}_{}.png".format(case_name,args.id))
