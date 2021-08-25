@@ -207,7 +207,9 @@ MAX_N_OBJECTS = 5
 N = 96
 #exp_list = [i for i in range(0,8)]
 # exp_list = [2,6] #Road [0,3,4,7] #FMTC [1,5] #Highway
+t_exp_list = [[0,3,4,7],[1,5,98,99],[2,6,96,97]]
 neg_list = [i for i in range(8,96)]
+
 def load_expert_dataset(exp_path,exp_case):
     """
     return
@@ -217,17 +219,20 @@ def load_expert_dataset(exp_path,exp_case):
     """
     exp_list=[]
     for i in exp_case:
-        if i==1: # FMTC
-            exp_list.extend([0,3,4,7])
-        elif i==2: # HighWay
-            exp_list.extend([1,5,98,99])
-        elif i==3: # ROAD
-            exp_list.extend([2,6,96,97])
-        else:
-            raise NotImplementedError
+        exp_list += t_exp_list[i-1]
+    # for i in exp_case:
+    #     if i==1: # FMTC
+    #         exp_list.extend([0,3,4,7])
+    #     elif i==2: # HighWay
+    #         exp_list.extend([1,5,98,99])
+    #     elif i==3: # ROAD
+    #         exp_list.extend([2,6,96,97])
+    #     else:
+    #         raise NotImplementedError
     rt = []
     act = []
-    for data_index in exp_list:
+    case = []
+    for c , data_index in enumerate(exp_list):
         data_name = data_name_list[data_index]
         data_path = exp_path + data_name + "/"
         state_path = data_path + "state/"
@@ -265,7 +270,6 @@ def load_expert_dataset(exp_path,exp_case):
                     data.append(0)
             rt.append(data)
             act.append(data_act)
-    
     return torch.FloatTensor(rt), torch.FloatTensor(act)
 
 def load_negative_dataset(neg_path):
@@ -333,12 +337,24 @@ def get_neg_case():
         size = en-st
         for i in range(size):
             if e<16:
-                res[idx] = 1
+                res[i] = 4
             elif e>27 and e<38:
-                res[idx] = 2
+                res[i] = 5
             else:
-                res[idx] = 3
-            idx+=1
+                res[i] = 6
+    return torch.FloatTensor(res)
+
+def get_exp_case(exp_case):
+    res=[]
+    idx=0
+    for e in exp_case:
+        exp_list = t_exp_list[e-1]
+        for data_index in exp_list:
+            st = seq_list[data_index][0]
+            en = seq_list[data_index][1]
+            size = en-st
+            for _ in range(size):
+                res.append(e)
     return torch.FloatTensor(res)
 
 torch.manual_seed(0)
@@ -352,6 +368,7 @@ class MixQuality():
         self.e_in, self.e_target = load_expert_dataset(exp_path,exp_case)
         self.n_in, self.n_target = load_negative_dataset(neg_path)
         self.n_case = get_neg_case()
+        self.e_case = get_exp_case(exp_case)
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
         self.norm = norm
@@ -383,7 +400,7 @@ class MixQuality():
             self.e_label = e_idx.size(0)
             self.x = e_in
             self.y = e_target
-            self.case = torch.zeros_like(e_idx)
+            self.case = self.e_case[e_idx]
             # self.x = torch.cat((e_in,n_in),dim=0)
             # self.y = torch.cat((e_target,n_target),dim=0)
             # self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
@@ -394,7 +411,7 @@ class MixQuality():
             if not self.neg:
                 self.x = self.e_in[e_idx]
                 self.y = self.e_target[e_idx]
-                self.case = torch.zeros_like(e_idx)
+                self.case = self.e_case[e_idx]
                 #self.is_expert = torch.ones_like(e_idx)
             else:
                 self.x = self.n_in
@@ -410,6 +427,8 @@ class MixQuality():
         if self.norm:
             self.x = (self.x - self.mean_in)/(self.std_in)
             self.y = (self.y - self.mean_t)/(self.std_t)
+            self.x[self.x != self.x] = 0
+            self.y[self.y != self.y] = 0
         else:
             self.x = self.x.sub_(self.mean_in).div_(self.std_in)
             self.y = self.y.sub(self.mean_t).div_(self.std_t)

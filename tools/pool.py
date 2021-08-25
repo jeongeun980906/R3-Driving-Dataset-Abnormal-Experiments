@@ -10,18 +10,16 @@ class AL_pool():
         self.expert_size = self.basedata.e_label
         self.total_size = self.basedata.__len__()
         self.idx = torch.tensor(random.sample(range(self.expert_size), num_init))
-        
+        self.case = self.basedata.case
+
     def subset_dataset(self,indices):
         '''
         Input: Top N index of acqusition function
         Output: Filtered Dataset
         '''
         self.idx = torch.cat((self.idx,indices),0)
-        filter = self.basedata.e_label
-        a = torch.where(self.idx<filter)[0]
-        input_index = self.idx[a] # Filter the Negative Data
-        x = copy.deepcopy(self.basedata.x[input_index])
-        y = copy.deepcopy(self.basedata.y[input_index])
+        x = copy.deepcopy(self.basedata.x[self.idx])
+        y = copy.deepcopy(self.basedata.y[self.idx])
         total = torch.range(0,self.total_size-1,dtype=torch.int64)
         mask = torch.ones_like(total, dtype=torch.bool)
         mask[self.idx] = False

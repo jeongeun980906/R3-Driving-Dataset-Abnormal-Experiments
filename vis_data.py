@@ -31,7 +31,7 @@ case = torch.cat((case,t),dim=0)
 data = torch.cat((data,a),dim=0)
 
 for c in exp_case:
-    a,b= load_expert_dataset(exp_path,[c])
+    a,b = load_expert_dataset(exp_path,[c])
     a = torch.cat((a,b),1)
     t = torch.empty((a.size(0))).fill_(c)
     temp_mean = torch.mean(a,dim=0).numpy().tolist()

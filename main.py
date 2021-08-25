@@ -1,7 +1,7 @@
 from tools.pool import AL_pool
 from solver import solver
 from tools.dataloader import total_dataset
-from tools.utils import print_n_txt,Logger,filter_expert
+from tools.utils import print_n_txt,Logger,get_ratio
 from tools.measure_ood import measure
 import torch
 import random
@@ -72,7 +72,8 @@ try:
 except:
     pass
 
-log = Logger(DIR+'log.json',p.idx,neg_case = test_n_dataset.case)
+init_ratio =get_ratio(p.idx,p.case)
+log = Logger(DIR+'log.json',p.idx,init_ratio,neg_case = test_n_dataset.case)
 method = ['epis_','alea_','pi_entropy_']
 
 try:
@@ -96,9 +97,7 @@ for i in range(args.query_step):
     final_train_acc, final_test_acc = AL_solver.train_mdn(label_iter,test_e_iter,test_n_iter,f)
     id = AL_solver.query_data(unlabel_iter,unl_size)
     new = p.unlabled_idx[id]
-    # filter_new = filter_expert(new,p)
-    # temp =torch.where(p.basedata.case[new]>0)[0].size(0)
-    # save_query = torch.cat((new.unsqueeze(0),p.basedata.case[new].unsqueeze(0)),dim=0)
+    ratio = get_ratio(new,p.case)
     label_iter,unlabel_iter = p.subset_dataset(new)
     id_eval = eval_ood_mdn(AL_solver.model,test_e_iter,'cuda')
     ood_eval = eval_ood_mdn(AL_solver.model,test_n_iter,'cuda')
@@ -111,6 +110,6 @@ for i in range(args.query_step):
         aupr.append(temp2)
     strTemp = ("Labled size : %d Unlabled size: %d")%(p.idx.size(0),p.unlabled_idx.size(0))
     print_n_txt(_f=f,_chars= strTemp)
-    log.append(final_train_acc,final_test_acc,new,id_eval,ood_eval,auroc,aupr)
+    log.append(final_train_acc,final_test_acc,new,ratio,id_eval,ood_eval,auroc,aupr)
     torch.save(AL_solver.model,DIR2+'{}.pth'.format(i))
 log.save()
