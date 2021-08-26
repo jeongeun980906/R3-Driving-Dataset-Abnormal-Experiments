@@ -1,3 +1,4 @@
+from torch.utils import data
 from tools.pool import AL_pool
 from solver import solver
 from tools.dataloader import total_dataset
@@ -14,6 +15,7 @@ from MDN.eval import eval_ood_mdn
 parser = argparse.ArgumentParser()
 parser.add_argument('--root', type=str,default='./dataset',help='root directory of the dataset')
 parser.add_argument('--id', type=int,default=1,help='id')
+parser.add_argument('--n_object', type=int,default=None,help='number of max object')
 parser.add_argument('--exp_case', nargs='+', type=int,default=[1,2,3],help='expert case')
 parser.add_argument('--gpu', type=int,default=0,help='gpu id')
 
@@ -49,17 +51,18 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 device='cuda'
 
-p = AL_pool(root=args.root,num_init=args.init_pool,norm=args.norm,exp_case=args.exp_case)
+p = AL_pool(root=args.root,num_init=args.init_pool,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
 torch.manual_seed(SEED)
-test_e_dataset = total_dataset(root = args.root, train=False,neg=False,norm=args.norm,exp_case=args.exp_case)
+test_e_dataset = total_dataset(root = args.root, train=False,neg=False,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
 test_e_iter = torch.utils.data.DataLoader(test_e_dataset, batch_size=args.batch_size, 
                         shuffle=False)
 torch.manual_seed(SEED)
-test_n_dataset = total_dataset(root = args.root, train=False,neg=True,norm=args.norm,exp_case=args.exp_case)
+test_n_dataset = total_dataset(root = args.root, train=False,neg=True,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
 test_n_iter = torch.utils.data.DataLoader(test_n_dataset, batch_size=args.batch_size, 
                         shuffle=False)
 
-AL_solver = solver(args,device=device)
+data_dim = [p.basedata.x.size(-1), p.basedata.y.size(-1)]
+AL_solver = solver(args,data_dim=data_dim,device=device)
 AL_solver.init_param()
 
 label_iter,unlabel_iter = p.subset_dataset(torch.zeros(size=(0,1),dtype=torch.int64).squeeze(1))

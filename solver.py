@@ -9,10 +9,9 @@ from MDN.network import MixtureDensityNetwork
 from MDN.eval import query_mdn,test_eval_mdn
 
 class solver():
-    def __init__(self,args,device):
+    def __init__(self,args,data_dim,device):
         self.EPOCH = args.epoch
         self.device = device
-        self.load_model(args)
         self.method = args.query_method
         self.query_size = args.query_size
         self.query_init_weight = args.init_weight
@@ -20,11 +19,13 @@ class solver():
         self.wd = args.wd
         self.lr_rate = args.lr_rate
         self.lr_step = args.lr_step
+        self.data_dim = data_dim
         self.CLIP = 0.1
+        self.load_model(args)
 
     def load_model(self,args):
         self.model = MixtureDensityNetwork(
-                    name='mdn',x_dim=33, y_dim=2,k=args.k,h_dims=[64,64],actv=nn.ReLU(),sig_max=args.sig_max,
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dims=[64,64],actv=nn.ReLU(),sig_max=args.sig_max,
                     mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
 
     def init_param(self):
