@@ -30,7 +30,7 @@ parser.add_argument('--lr', type=float,default=1e-3,help='learning rate')
 parser.add_argument('--batch_size', type=int,default=128,help='batch size')
 parser.add_argument('--wd', type=float,default=1e-4,help='weight decay')
 parser.add_argument('--dropout', type=float,default=0.25,help='dropout rate')
-parser.add_argument('--lr_rate', type=float,default=0.5,help='learning rate schedular rate')
+parser.add_argument('--lr_rate', type=float,default=0.9,help='learning rate schedular rate')
 parser.add_argument('--lr_step', type=int,default=50,help='learning rate schedular rate')
 
 parser.add_argument('--k', type=int,default=10,help='number of mixtures')

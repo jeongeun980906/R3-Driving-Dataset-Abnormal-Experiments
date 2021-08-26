@@ -210,6 +210,14 @@ N = 96
 t_exp_list = [[0,3,4,7],[1,5,98,99],[2,6,96,97]]
 neg_list = [i for i in range(8,96)]
 
+def check_exp_case(c):
+    if c in t_exp_list[0]:
+        return 1
+    elif c in t_exp_list[1]:
+        return 2
+    elif c in t_exp_list[2]:
+        return 3
+
 def load_expert_dataset(exp_path,exp_case,N_OBJECTS=None):
     """
     return
@@ -222,11 +230,11 @@ def load_expert_dataset(exp_path,exp_case,N_OBJECTS=None):
         exp_list += t_exp_list[i-1]
     rt = []
     act = []
-    for c , data_index in enumerate(exp_list):
+    case = []
+    for data_index in exp_list:
         data_name = data_name_list[data_index]
         data_path = exp_path + data_name + "/"
         state_path = data_path + "state/"
-
         st = seq_list[data_index][0]
         en = seq_list[data_index][1]
         for seq in range(st + 1, en + 1):
@@ -253,6 +261,7 @@ def load_expert_dataset(exp_path,exp_case,N_OBJECTS=None):
                         data.append(obj['omega'])
                     rt.append(data)
                     act.append(data_act)
+                    case.append(check_exp_case(data_index))
             else:
                 data = []
                 data_act = []
@@ -281,7 +290,8 @@ def load_expert_dataset(exp_path,exp_case,N_OBJECTS=None):
                         data.append(0)
                 rt.append(data)
                 act.append(data_act)
-    return torch.FloatTensor(rt), torch.FloatTensor(act)
+                case.append(check_exp_case(data_index))
+    return torch.FloatTensor(rt), torch.FloatTensor(act),torch.FloatTensor(case)
 
 def load_negative_dataset(neg_path,N_OBJECTS=None):
     """
@@ -292,12 +302,12 @@ def load_negative_dataset(neg_path,N_OBJECTS=None):
     """
     rt = []
     act = []
-
+    case = []
     for data_index in neg_list:
         data_name = data_name_list[data_index]
         data_path = neg_path + data_name + "/"
         state_path = data_path + "state/"
-
+        CASE_NUM = int(data_name.split('_')[3])
         st = seq_list[data_index][0]
         en = seq_list[data_index][1]
         for seq in range(st + 1, en + 1):
@@ -324,6 +334,7 @@ def load_negative_dataset(neg_path,N_OBJECTS=None):
                         data.append(obj['omega'])
                     rt.append(data)
                     act.append(data_act)
+                    case.append(check_neg_case(CASE_NUM))
             else:
                 data = []
                 data_act = []
@@ -352,42 +363,22 @@ def load_negative_dataset(neg_path,N_OBJECTS=None):
                         data.append(0)
                 rt.append(data)
                 act.append(data_act)
+                case.append(check_neg_case(CASE_NUM))
     
-    return torch.FloatTensor(rt), torch.FloatTensor(act)
+    return torch.FloatTensor(rt), torch.FloatTensor(act), torch.FloatTensor(case)
 
-def get_neg_case():
+def check_neg_case(e):
     '''
     0 ~ 15: Unstable 1
     28 ~ 37: Cross Road Accident 2
     Others: Straight Road Accident 3
     '''
-    res=[0]*4600
-    idx=0
-    for e,data_index in enumerate(neg_list):
-        st = seq_list[data_index][0]
-        en = seq_list[data_index][1]
-        size = en-st
-        for i in range(size):
-            if e<16:
-                res[i] = 4
-            elif e>27 and e<38:
-                res[i] = 5
-            else:
-                res[i] = 6
-    return torch.FloatTensor(res)
-
-def get_exp_case(exp_case):
-    res=[]
-    idx=0
-    for e in exp_case:
-        exp_list = t_exp_list[e-1]
-        for data_index in exp_list:
-            st = seq_list[data_index][0]
-            en = seq_list[data_index][1]
-            size = en-st
-            for _ in range(size):
-                res.append(e)
-    return torch.FloatTensor(res)
+    if e<16:
+        return 4
+    elif e>27 and e<38:
+        return 5
+    else:
+        return 6
 
 torch.manual_seed(0)
 
@@ -397,10 +388,8 @@ class MixQuality():
         neg_path = root + "neg/"
         self.train=train
         self.neg = neg
-        self.e_in, self.e_target = load_expert_dataset(exp_path,exp_case,N_OBJECTS)
-        self.n_in, self.n_target = load_negative_dataset(neg_path,N_OBJECTS)
-        self.n_case = get_neg_case()
-        self.e_case = get_exp_case(exp_case)
+        self.e_in, self.e_target,self.e_case = load_expert_dataset(exp_path,exp_case,N_OBJECTS)
+        self.n_in, self.n_target,self.n_case = load_negative_dataset(neg_path,N_OBJECTS)
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
         self.norm = norm
