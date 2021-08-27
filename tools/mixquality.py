@@ -291,9 +291,9 @@ def load_expert_dataset_state_action(exp_path,exp_case,N_OBJECTS=None):
                         data.append(0)
                         data.append(0)
                         data.append(0)
-                data_act.append(state['v'])
-                data_act.append(state['decision'])
-                data_act.append(state['deviation'])
+                data_act.append(next_state['v'])
+                data_act.append(next_state['decision'])
+                data_act.append(next_state['deviation'])
                 n_objects_next = len(next_state['objects'])
                 for i in range(MAX_N_OBJECTS):
                     if i < n_objects_next:
