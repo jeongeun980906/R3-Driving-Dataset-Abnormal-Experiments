@@ -218,106 +218,106 @@ def check_exp_case(c):
     elif c in t_exp_list[2]:
         return 3
 
-def load_expert_dataset_state_action(exp_path,exp_case,N_OBJECTS=None):
-    """
-    return
-    dataset : N * STATE_DIM
-    N means # of data
-    STATE_DIM means dimension of state (5 + N_OBJECTS * 6)
-    """
-    exp_list=[]
-    for i in exp_case:
-        exp_list += t_exp_list[i-1]
-    rt = []
-    act = []
-    case = []
-    for data_index in exp_list:
-        data_name = data_name_list[data_index]
-        data_path = exp_path + data_name + "/"
-        state_path = data_path + "state/"
-        st = seq_list[data_index][0]
-        en = seq_list[data_index][1]-1
-        for seq in range(st + 1, en + 1):
-            state_file = state_path + str(seq).zfill(6) + ".json"
-            next_state_file = state_path + str(seq+1).zfill(6) + ".json"
-            with open(state_file, "r") as st_json:
-                state = json.load(st_json)
-            with open(next_state_file, "r") as st_json:
-                next_state = json.load(st_json)
-            if N_OBJECTS!=None:
-                data = []
-                data_act = []
-                n_objects = len(state['objects'])
-                if n_objects==N_OBJECTS:
-                    data.append(state['v'])
-                    data_act.append(state['ax'])
-                    data_act.append(state['omega'])
-                    data.append(state['decision'])
-                    data.append(state['deviation'])
-                    for i in range(N_OBJECTS):
-                        obj = state['objects'][i]
-                        data.append(obj['x'])
-                        data.append(obj['y'])
-                        data.append(obj['theta'])
-                        data.append(obj['v'])
-                        data.append(obj['ax'])
-                        data.append(obj['omega'])
-                    rt.append(data)
-                    act.append(data_act)
-                    case.append(check_exp_case(data_index))
-            else:
-                data = []
-                data_act = []
-                data.append(state['v'])
-                data.append(state['ax'])
-                data.append(state['omega'])
-                data.append(state['decision'])
-                data.append(state['deviation'])
-                n_objects = len(state['objects'])
-                for i in range(MAX_N_OBJECTS):
-                    if i < n_objects:
-                        obj = state['objects'][i]
-                        data.append(obj['x'])
-                        data.append(obj['y'])
-                        data.append(obj['theta'])
-                        data.append(obj['v'])
-                        data.append(obj['ax'])
-                        data.append(obj['omega'])
-                    else:
-                        # add dummy
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                data_act.append(next_state['v'])
-                data_act.append(next_state['decision'])
-                data_act.append(next_state['deviation'])
-                n_objects_next = len(next_state['objects'])
-                for i in range(MAX_N_OBJECTS):
-                    if i < n_objects_next:
-                        obj = next_state['objects'][i]
-                        data_act.append(obj['x'])
-                        data_act.append(obj['y'])
-                        data_act.append(obj['theta'])
-                        data_act.append(obj['v'])
-                        data_act.append(obj['ax'])
-                        data_act.append(obj['omega'])
-                    else:
-                        # add dummy
-                        data_act.append(0)
-                        data_act.append(0)
-                        data_act.append(0)
-                        data_act.append(0)
-                        data_act.append(0)
-                        data_act.append(0)
-                rt.append(data)
-                act.append(data_act)
-                case.append(check_exp_case(data_index))
-    return torch.FloatTensor(rt), torch.FloatTensor(act),torch.FloatTensor(case)
+# def load_expert_dataset_state_action(exp_path,exp_case,N_OBJECTS=None):
+#     """
+#     return
+#     dataset : N * STATE_DIM
+#     N means # of data
+#     STATE_DIM means dimension of state (5 + N_OBJECTS * 6)
+#     """
+#     exp_list=[]
+#     for i in exp_case:
+#         exp_list += t_exp_list[i-1]
+#     rt = []
+#     act = []
+#     case = []
+#     for data_index in exp_list:
+#         data_name = data_name_list[data_index]
+#         data_path = exp_path + data_name + "/"
+#         state_path = data_path + "state/"
+#         st = seq_list[data_index][0]
+#         en = seq_list[data_index][1]-1
+#         for seq in range(st + 1, en + 1):
+#             state_file = state_path + str(seq).zfill(6) + ".json"
+#             next_state_file = state_path + str(seq+1).zfill(6) + ".json"
+#             with open(state_file, "r") as st_json:
+#                 state = json.load(st_json)
+#             with open(next_state_file, "r") as st_json:
+#                 next_state = json.load(st_json)
+#             if N_OBJECTS!=None:
+#                 data = []
+#                 data_act = []
+#                 n_objects = len(state['objects'])
+#                 if n_objects==N_OBJECTS:
+#                     data.append(state['v'])
+#                     data_act.append(state['ax'])
+#                     data_act.append(state['omega'])
+#                     data.append(state['decision'])
+#                     data.append(state['deviation'])
+#                     for i in range(N_OBJECTS):
+#                         obj = state['objects'][i]
+#                         data.append(obj['x'])
+#                         data.append(obj['y'])
+#                         data.append(obj['theta'])
+#                         data.append(obj['v'])
+#                         data.append(obj['ax'])
+#                         data.append(obj['omega'])
+#                     rt.append(data)
+#                     act.append(data_act)
+#                     case.append(check_exp_case(data_index))
+#             else:
+#                 data = []
+#                 data_act = []
+#                 data.append(state['v'])
+#                 data.append(state['ax'])
+#                 data.append(state['omega'])
+#                 data.append(state['decision'])
+#                 data.append(state['deviation'])
+#                 n_objects = len(state['objects'])
+#                 for i in range(MAX_N_OBJECTS):
+#                     if i < n_objects:
+#                         obj = state['objects'][i]
+#                         data.append(obj['x'])
+#                         data.append(obj['y'])
+#                         data.append(obj['theta'])
+#                         data.append(obj['v'])
+#                         data.append(obj['ax'])
+#                         data.append(obj['omega'])
+#                     else:
+#                         # add dummy
+#                         data.append(0)
+#                         data.append(0)
+#                         data.append(0)
+#                         data.append(0)
+#                         data.append(0)
+#                         data.append(0)
+#                 data_act.append(next_state['v'])
+#                 data_act.append(next_state['decision'])
+#                 data_act.append(next_state['deviation'])
+#                 n_objects_next = len(next_state['objects'])
+#                 for i in range(MAX_N_OBJECTS):
+#                     if i < n_objects_next:
+#                         obj = next_state['objects'][i]
+#                         data_act.append(obj['x'])
+#                         data_act.append(obj['y'])
+#                         data_act.append(obj['theta'])
+#                         data_act.append(obj['v'])
+#                         data_act.append(obj['ax'])
+#                         data_act.append(obj['omega'])
+#                     else:
+#                         # add dummy
+#                         data_act.append(0)
+#                         data_act.append(0)
+#                         data_act.append(0)
+#                         data_act.append(0)
+#                         data_act.append(0)
+#                         data_act.append(0)
+#                 rt.append(data)
+#                 act.append(data_act)
+#                 case.append(check_exp_case(data_index))
+#     return torch.FloatTensor(rt), torch.FloatTensor(act),torch.FloatTensor(case)
 
-def load_negative_dataset_state_action(neg_path,N_OBJECTS=None):
+# def load_negative_dataset_state_action(neg_path,N_OBJECTS=None):
     """
     return
     dataset : N * STATE_DIM
@@ -580,13 +580,13 @@ def check_neg_case(e):
 torch.manual_seed(0)
 
 class MixQuality():
-    def __init__(self,root = "./dataset/light_mixquality/",exp_case=[1,2,3],train=True,neg=False,norm=True,N_OBJECTS=None):
+    def __init__(self,root = "./dataset/mixquality/",exp_case=[1,2,3],train=True,neg=False,norm=True,N_OBJECTS=None):
         exp_path = root + "exp/"
         neg_path = root + "neg/"
         self.train=train
         self.neg = neg
-        self.e_in, self.e_target,self.e_case = load_expert_dataset_state_action(exp_path,exp_case,N_OBJECTS)
-        self.n_in, self.n_target,self.n_case = load_negative_dataset_state_action(neg_path,N_OBJECTS)
+        self.e_in, self.e_target,self.e_case = load_expert_dataset(exp_path,exp_case,N_OBJECTS)
+        self.n_in, self.n_target,self.n_case = load_negative_dataset(neg_path,N_OBJECTS)
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
         self.norm = norm
