@@ -263,68 +263,68 @@ def load_expert_dataset(exp_path,exp_case,N_OBJECTS=None):
                     act.append(data_act)
                     case.append(check_exp_case(data_index))
             else:
-                data = [] 
-                data_act = [] 
-                data.append(state['v']) 
-                data_act.append(state['ax']) 
-                data_act.append(state['omega']) 
-                data.append(state['decision']) 
-                data.append(state['deviation']) 
-                n_objects = len(state['objects']) 
-                x = 0 
-                y = 0 
-                theta =0 
-                v = 0 
-                ax = 0 
-                omega = 0 
-                try:
-                    for i in range(n_objects): 
-                        obj = state['objects'][i] 
-                        x += obj['x'] 
-                        y += obj['y'] 
-                        theta += obj['theta'] 
-                        v += obj['v'] 
-                        ax += obj['ax'] 
-                        omega += obj['omega'] 
-                    x = x/n_objects 
-                    y = y/n_objects 
-                    theta = theta/n_objects 
-                    v = v/n_objects 
-                    ax = ax/n_objects 
-                    omega = omega/n_objects 
-                except:
-                    pass
-                data.append(x) 
-                data.append(y) 
-                data.append(theta) 
-                data.append(v) 
-                data.append(ax) 
-                data.append(omega) 
-                # data = []
-                # data_act = []
-                # data.append(state['v'])
-                # data_act.append(state['ax'])
-                # data_act.append(state['omega'])
-                # data.append(state['decision'])
-                # data.append(state['deviation'])
-                # n_objects = len(state['objects'])
-                # for i in range(MAX_N_OBJECTS):
-                #     if i < n_objects:
-                #         obj = state['objects'][i]
-                #         data.append(obj['x'])
-                #         data.append(obj['y'])
-                #         data.append(obj['theta'])
-                #         data.append(obj['v'])
-                #         data.append(obj['ax'])
-                #         data.append(obj['omega'])
-                #     else:
-                #         # add dummy
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
+                # data = [] 
+                # data_act = [] 
+                # data.append(state['v']) 
+                # data_act.append(state['ax']) 
+                # data_act.append(state['omega']) 
+                # data.append(state['decision']) 
+                # data.append(state['deviation']) 
+                # n_objects = len(state['objects']) 
+                # x = 0 
+                # y = 0 
+                # theta =0 
+                # v = 0 
+                # ax = 0 
+                # omega = 0 
+                # try:
+                #     for i in range(n_objects): 
+                #         obj = state['objects'][i] 
+                #         x += obj['x'] 
+                #         y += obj['y'] 
+                #         theta += obj['theta'] 
+                #         v += obj['v'] 
+                #         ax += obj['ax'] 
+                #         omega += obj['omega'] 
+                #     x = x/n_objects 
+                #     y = y/n_objects 
+                #     theta = theta/n_objects 
+                #     v = v/n_objects 
+                #     ax = ax/n_objects 
+                #     omega = omega/n_objects 
+                # except:
+                #     pass
+                # data.append(x) 
+                # data.append(y) 
+                # data.append(theta) 
+                # data.append(v) 
+                # data.append(ax) 
+                # data.append(omega) 
+                data = []
+                data_act = []
+                data.append(state['v'])
+                data_act.append(state['ax'])
+                data_act.append(state['omega'])
+                data.append(state['decision'])
+                data.append(state['deviation'])
+                n_objects = len(state['objects'])
+                for i in range(MAX_N_OBJECTS):
+                    if i < n_objects:
+                        obj = state['objects'][i]
+                        data.append(obj['x'])
+                        data.append(obj['y'])
+                        data.append(obj['theta'])
+                        data.append(obj['v'])
+                        data.append(obj['ax'])
+                        data.append(obj['omega'])
+                    else:
+                        # add dummy
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
                 rt.append(data)
                 act.append(data_act)
                 case.append(check_exp_case(data_index))
@@ -373,68 +373,68 @@ def load_negative_dataset(neg_path,N_OBJECTS=None):
                     act.append(data_act)
                     case.append(check_neg_case(CASE_NUM))
             else:
-                data = [] 
-                data_act = [] 
-                data.append(state['v']) 
-                data_act.append(state['ax']) 
-                data_act.append(state['omega']) 
-                data.append(state['decision']) 
-                data.append(state['deviation']) 
-                n_objects = len(state['objects']) 
-                x = 0 
-                y = 0 
-                theta =0 
-                v = 0 
-                ax = 0 
-                omega = 0 
-                try:
-                    for i in range(n_objects): 
-                        obj = state['objects'][i] 
-                        x += obj['x'] 
-                        y += obj['y'] 
-                        theta += obj['theta'] 
-                        v += obj['v'] 
-                        ax += obj['ax'] 
-                        omega += obj['omega'] 
-                    x = x/n_objects 
-                    y = y/n_objects 
-                    theta = theta/n_objects 
-                    v = v/n_objects 
-                    ax = ax/n_objects 
-                    omega = omega/n_objects 
-                except:
-                    pass
-                data.append(x) 
-                data.append(y) 
-                data.append(theta) 
-                data.append(v) 
-                data.append(ax) 
-                data.append(omega) 
-                # data = []
-                # data_act = []
-                # data.append(state['v'])
-                # data_act.append(state['ax'])
-                # data_act.append(state['omega'])
-                # data.append(state['decision'])
-                # data.append(state['deviation'])
-                # n_objects = len(state['objects'])
-                # for i in range(MAX_N_OBJECTS):
-                #     if i < n_objects:
-                #         obj = state['objects'][i]
-                #         data.append(obj['x'])
-                #         data.append(obj['y'])
-                #         data.append(obj['theta'])
-                #         data.append(obj['v'])
-                #         data.append(obj['ax'])
-                #         data.append(obj['omega'])
-                #     else:
-                #         # add dummy
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
-                #         data.append(0)
+                # data = [] 
+                # data_act = [] 
+                # data.append(state['v']) 
+                # data_act.append(state['ax']) 
+                # data_act.append(state['omega']) 
+                # data.append(state['decision']) 
+                # data.append(state['deviation']) 
+                # n_objects = len(state['objects']) 
+                # x = 0 
+                # y = 0 
+                # theta =0 
+                # v = 0 
+                # ax = 0 
+                # omega = 0 
+                # try:
+                #     for i in range(n_objects): 
+                #         obj = state['objects'][i] 
+                #         x += obj['x'] 
+                #         y += obj['y'] 
+                #         theta += obj['theta'] 
+                #         v += obj['v'] 
+                #         ax += obj['ax'] 
+                #         omega += obj['omega'] 
+                #     x = x/n_objects 
+                #     y = y/n_objects 
+                #     theta = theta/n_objects 
+                #     v = v/n_objects 
+                #     ax = ax/n_objects 
+                #     omega = omega/n_objects 
+                # except:
+                #     pass
+                # data.append(x) 
+                # data.append(y) 
+                # data.append(theta) 
+                # data.append(v) 
+                # data.append(ax) 
+                # data.append(omega) 
+                data = []
+                data_act = []
+                data.append(state['v'])
+                data_act.append(state['ax'])
+                data_act.append(state['omega'])
+                data.append(state['decision'])
+                data.append(state['deviation'])
+                n_objects = len(state['objects'])
+                for i in range(MAX_N_OBJECTS):
+                    if i < n_objects:
+                        obj = state['objects'][i]
+                        data.append(obj['x'])
+                        data.append(obj['y'])
+                        data.append(obj['theta'])
+                        data.append(obj['v'])
+                        data.append(obj['ax'])
+                        data.append(obj['omega'])
+                    else:
+                        # add dummy
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
+                        data.append(0)
                 rt.append(data)
                 act.append(data_act)
                 case.append(check_neg_case(CASE_NUM))

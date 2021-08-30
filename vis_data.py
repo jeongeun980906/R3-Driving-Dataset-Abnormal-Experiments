@@ -13,8 +13,8 @@ parser.add_argument('--n_object', type=int,default=None,help='number of max obje
 args = parser.parse_args()
 
 if args.n_object==None:
-    MAX_N_OBJECTS = 1#5
-    dsize =11 #35
+    MAX_N_OBJECTS = 5
+    dsize =35
 else:
     MAX_N_OBJECTS = args.n_object
     dsize = 5 + 6*args.n_object
