@@ -23,8 +23,9 @@ def mdn_eval(pi,mu,sigma,data):
     idx_gather = max_idx.unsqueeze(dim=-1).repeat(1,mu.shape[2]).unsqueeze(1) # [N x 1 x D]
     mu_sel = torch.gather(mu,dim=1,index=idx_gather).squeeze(dim=1) # [N x D]
     mu_prime = torch.sum(torch.mul(pi_exp,mu),dim=1)
-    max_pi_dis = torch.sum((mu_sel-data)**2,dim=1)
-    mean_dis = torch.sum((mu_prime-data)**2,dim=1)
+    max_pi_dis = torch.mean((mu_sel-data)**2,dim=1)
+    mean_dis = torch.mean((mu_prime-data)**2,dim=1)
+    #print(mean_dis.size())
     out = {
         'l2_max': max_pi_dis,
         'l2_mean':mean_dis

@@ -4,7 +4,7 @@ import torch.nn as nn
 from collections import OrderedDict
 import torch
 
-class MixtureDensityNetwork_MHA(nn.module):
+class MixtureDensityNetwork_MHA(nn.Module):
     def __init__(self,name='mdn',x_dim=1,y_dim=2,k=5,h_dim=128,nx=2,n_head=8,
                 sig_max=1,mu_min=-3.0,mu_max=+3.0,dropout=0.3):
         self.name = name
@@ -21,12 +21,12 @@ class MixtureDensityNetwork_MHA(nn.module):
         self.build_model()
 
     def build_model(self):
-        self.encoder = Encoder(self.x_dim, dk=int(slef.h_dim/self.n_head), dv=int(slef.h_dim/self.n_head)
+        self.encoder = Encoder(self.x_dim, dk=int(self.h_dim/self.n_head), dv=int(self.h_dim/self.n_head)
                                 ,d_model=self.h_dim,n_heads=self.n_head,dropout=self.dropout_rate, nx=self.nx)
         mog = MixturesOfGaussianLayer(self.h_dim,self.y_dim,self.k,sig_max=self.sig_max)
     
     def forward(self,x):
-        z = self.encoder(src,None)
-        z = torch.Flatten(z,start_dim=1)
+        z = self.encoder(x,None)
+        z = torch.mean(z,axis=1) # [N x L x D] -> [N x D]
         z = self.mog(z)
         return z

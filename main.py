@@ -12,15 +12,14 @@ import os
 parser = argparse.ArgumentParser()
 parser.add_argument('--root', type=str,default='./dataset',help='root directory of the dataset')
 parser.add_argument('--id', type=int,default=1,help='id')
-parser.add_argument('--light', action='store_true',default=False,help='light verison')
-parser.add_argument('--n_object', type=int,default=None,help='number of max object')
-parser.add_argument('--exp_case', nargs='+', type=int,default=[1,2,3],help='expert case')
+parser.add_argument('--light', action='store_true',default=True,help='light verison')
+parser.add_argument('--transformer', action='store_true',default=False,help='transformer model')
 parser.add_argument('--gpu', type=int,default=0,help='gpu id')
 
 parser.add_argument('--epoch', type=int,default=100,help='epoch')
 parser.add_argument('--lr', type=float,default=1e-3,help='learning rate')
 parser.add_argument('--batch_size', type=int,default=128,help='batch size')
-parser.add_argument('--wd', type=float,default=1e-4,help='weight decay')
+parser.add_argument('--wd', type=float,default=1e-3,help='weight decay')
 parser.add_argument('--dropout', type=float,default=0.25,help='dropout rate')
 parser.add_argument('--lr_rate', type=float,default=0.9,help='learning rate schedular rate')
 parser.add_argument('--lr_step', type=int,default=50,help='learning rate schedular rate')
@@ -47,10 +46,10 @@ Solver = solver(args,device=device,SEED=SEED)
 Solver.init_param()
 # [init, total-init]
 
-DIR = './res/mdn_{}/{}/'.format(args.exp_case,args.id)
-DIR2 = './res/mdn_{}/{}/ckpt/'.format(args.exp_case,args.id)
+DIR = './res/mdn/{}/'.format(args.id)
+DIR2 = './res/mdn/{}/ckpt/'.format(args.id)
 try:
-    os.mkdir('./res/mdn_{}'.format(args.exp_case))
+    os.mkdir('./res/mdn')
 except:
     pass
 

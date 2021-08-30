@@ -5,6 +5,7 @@ from tools.utils import print_n_txt
 
 from MDN.loss import mdn_loss,mdn_eval,mdn_uncertainties
 from MDN.network import MixtureDensityNetwork
+from MDN.mha_network import MixtureDensityNetwork_MHA
 from tools.dataloader import total_dataset
 
 class solver():
@@ -21,8 +22,13 @@ class solver():
         self.load_model(args)
 
     def load_model(self,args):
-        self.model = MixtureDensityNetwork(
-                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dims=[128,128],actv=nn.ReLU(),sig_max=args.sig_max,
+        if args.transformer:
+            self.model = MixtureDensityNetwork_MHA(
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dim=128,nx=2
+                    ,sig_max=args.sig_max,mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
+        else:
+            self.model = MixtureDensityNetwork(
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dims=[128,128,128],actv=nn.ReLU(),sig_max=args.sig_max,
                     mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
 
     def init_param(self):
@@ -33,15 +39,15 @@ class solver():
             root = args.root+'/light_mixquality/'
         else:
             root = args.root+'/mixquality/'
-        self.train_dataset = total_dataset(root = root, train=True,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
+        self.train_dataset = total_dataset(root = root, train=True,norm=args.norm)
         self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
         torch.manual_seed(self.SEED)
-        self.test_e_dataset = total_dataset(root = root, train=False,neg=False,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
+        self.test_e_dataset = total_dataset(root = root, train=False,neg=False,norm=args.norm)
         self.test_e_iter = torch.utils.data.DataLoader(self.test_e_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
         torch.manual_seed(self.SEED)
-        self.test_n_dataset = total_dataset(root = root, train=False,neg=True,norm=args.norm,exp_case=args.exp_case,N_OBJECTS=args.n_object)
+        self.test_n_dataset = total_dataset(root = root, train=False,neg=True,norm=args.norm)
         self.test_n_iter = torch.utils.data.DataLoader(self.test_n_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
 
@@ -63,7 +69,7 @@ class solver():
                 loss = torch.mean(loss_out['nll'])
                 optimizer.zero_grad() # reset gradient
                 loss.backward() # back-propagation
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
+                # torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
                 optimizer.step() # optimizer update
                 # Track losses
                 loss_sum += loss

@@ -4,8 +4,8 @@ import torch.utils.data as data
 import torch
 
 class total_dataset(data.Dataset):
-    def __init__(self,root='./dataset/mixquality/',train=True,neg=False,norm=True,exp_case=[1,2,3],N_OBJECTS=None):
-        mix = MixQuality(root=root,train=train,neg=neg,norm=norm,exp_case=exp_case,N_OBJECTS=N_OBJECTS)
+    def __init__(self,root='./dataset/mixquality/',train=True,neg=False,norm=True):
+        mix = MixQuality(root=root,train=train,neg=neg,norm=norm)
         self.x = mix.x
         self.y = mix.y
         self.e_label = mix.e_label

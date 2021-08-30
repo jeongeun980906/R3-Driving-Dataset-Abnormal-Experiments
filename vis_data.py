@@ -29,7 +29,7 @@ std = []
 max_ = []
 min_ = []
 
-a,b,_ = load_negative_dataset(neg_path,N_OBJECTS=args.n_object)
+a,b,_ = load_negative_dataset(neg_path)
 a = torch.cat((a,b),1)
 t = torch.empty((a.size(0))).fill_(0)
 temp_mean = torch.mean(a,dim=0).numpy().tolist()
@@ -44,7 +44,7 @@ case = torch.cat((case,t),dim=0)
 data = torch.cat((data,a),dim=0)
 
 for c in exp_case:
-    a,b,t = load_expert_dataset(exp_path,[c],N_OBJECTS=args.n_object)
+    a,b,t = load_expert_dataset(exp_path)
     a = torch.cat((a,b),1)
     temp_mean = torch.mean(a,dim=0).numpy().tolist()
     ma = torch.max(a,dim=0)[0].numpy().tolist()
