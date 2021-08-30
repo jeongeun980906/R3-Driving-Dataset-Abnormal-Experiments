@@ -39,15 +39,15 @@ class solver():
             root = args.root+'/light_mixquality/'
         else:
             root = args.root+'/mixquality/'
-        self.train_dataset = total_dataset(root = root, train=True,norm=args.norm)
+        self.train_dataset = total_dataset(root = root, train=True,norm=args.norm,frame=args.frame)
         self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
         torch.manual_seed(self.SEED)
-        self.test_e_dataset = total_dataset(root = root, train=False,neg=False,norm=args.norm)
+        self.test_e_dataset = total_dataset(root = root, train=False,neg=False,norm=args.norm,frame=args.frame)
         self.test_e_iter = torch.utils.data.DataLoader(self.test_e_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
         torch.manual_seed(self.SEED)
-        self.test_n_dataset = total_dataset(root = root, train=False,neg=True,norm=args.norm)
+        self.test_n_dataset = total_dataset(root = root, train=False,neg=True,norm=args.norm,frame=args.frame)
         self.test_n_iter = torch.utils.data.DataLoader(self.test_n_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
 

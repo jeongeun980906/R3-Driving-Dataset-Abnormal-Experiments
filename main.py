@@ -15,6 +15,8 @@ parser.add_argument('--id', type=int,default=1,help='id')
 parser.add_argument('--light', action='store_true',default=True,help='light verison')
 parser.add_argument('--transformer', action='store_true',default=False,help='transformer model')
 parser.add_argument('--gpu', type=int,default=0,help='gpu id')
+parser.add_argument('--frame', type=int,default=1,help='frame')
+parser.add_argument('--exp_case', type=int, nargs='+',default=[1,2,3],help='expert case')
 
 parser.add_argument('--epoch', type=int,default=100,help='epoch')
 parser.add_argument('--lr', type=float,default=1e-3,help='learning rate')
