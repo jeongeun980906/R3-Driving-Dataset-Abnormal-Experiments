@@ -1,4 +1,4 @@
-from sklearn.metrics import average_precision_score,roc_auc_score
+from sklearn.metrics import average_precision_score,roc_auc_score,roc_curve
 import torch
 import matplotlib.pyplot as plt
 
@@ -10,8 +10,7 @@ def measure(id_eval,ood_eval,plot=False):
     auroc=roc_auc_score(GT,EVAL)
     aupr = average_precision_score(GT,EVAL)
     if plot:
-        plt.figure()
-        plt.hist(id_eval,label='id')
-        plt.hist(ood_eval,label='ood')
-        plt.savefig('temp.png')
-    return auroc,aupr
+        fpr, tpr, _ = roc_curve(GT,EVAL)
+        return auroc,aupr,fpr,tpr
+    else:
+        return auroc,aupr

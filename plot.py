@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import os,json
 import argparse
 import numpy as np
+from tools.measure_ood import measure
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--id', type=int,default=1,help='id')
@@ -25,7 +26,7 @@ f.close()
 '''
 Plot NLL, AUROC, AUPR
 '''
-plt.figure(figsize=(15,8))
+plt.figure(figsize=(15,15))
 grid = plt.GridSpec(3,3)
 plt.suptitle("MDN Learning Result")
 plt.subplot(grid[0,0:3])
@@ -39,6 +40,9 @@ leg = plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.)
 Plot Histogram by case
 Plot ROC curve in one plot
 '''
+situation = [[0,2],[0,3],[0,6],[1,2],[1,3],[0,4],[0,5],[1,6]]
+situation_name = ['straighht_road','cross_road','unstable','lane_keeping',
+                    'lane_changing','overtaking','collision']
 for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     plt.subplot(3,3,k+4)
     plt.title("Eval Method: %s \nAUROC:[%.3f] AUPR: [%.3f]"%(j[:-1],auroc[j],aupr[j]))
@@ -47,7 +51,6 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     case4 = ood_ar[case4]
     case5 = np.where(neg_case[:,1]==1)[0] # cross_road_index
     case5 = ood_ar[case5]
-
     ind_ar = np.asarray(ind[j])
 
     case1 = np.where(exp_case[:,0]==1)[0] 
@@ -69,8 +72,16 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     if k==2:
         plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.)
     plt.subplot(3,3,k+7)
-    #for i in range(7):
-
-
-plt.tight_layout()
+    plt.title("ROC Curve")
+    for i,j in situation:
+        ood_temp1 = np.where(neg_case[:,i]==1)[0]
+        ood_temp2 = np.where(neg_case[:,j]==1)[0]
+        ood_temp = np.intersect1d(ood_temp1,ood_temp2)
+        ood_temp = ood_ar[ood_temp].tolist()
+        id_temp = ind_ar.tolist()
+        print(len(ood_temp))
+        auroc_temp, aupr_temp, fpr,tpr = measure(id_temp,ood_temp,True)
+        plt.plot(fpr,tpr,label='%s,%s\nAUROC:%.3f AUPR %.3f'%(situation_name[i],situation_name[j],auroc_temp,aupr_temp))
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
+    plt.tight_layout()
 plt.savefig("./res/mdn_{}.png".format(args.id))

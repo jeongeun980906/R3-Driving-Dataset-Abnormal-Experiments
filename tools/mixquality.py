@@ -986,7 +986,7 @@ def load_negative_dataset(neg_path):
 torch.manual_seed(0)
 
 class MixQuality():
-    def __init__(self,root = "./dataset/mixquality/",train=True,neg=False,norm=True):
+    def __init__(self,root = "./dataset/mixquality/",train=True,neg=False,norm=True,state_num=1):
         exp_path = root + "exp/"
         neg_path = root + "neg/"
         self.train=train

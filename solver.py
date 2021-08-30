@@ -28,7 +28,7 @@ class solver():
                     ,sig_max=args.sig_max,mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
         else:
             self.model = MixtureDensityNetwork(
-                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dims=[128,128,128],actv=nn.ReLU(),sig_max=args.sig_max,
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dims=[128,128],actv=nn.ReLU(),sig_max=args.sig_max,
                     mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
 
     def init_param(self):
