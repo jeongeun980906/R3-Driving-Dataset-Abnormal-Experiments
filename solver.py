@@ -24,7 +24,7 @@ class solver():
     def load_model(self,args):
         if args.transformer:
             self.model = MixtureDensityNetwork_MHA(
-                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,n_head=3,nx=2
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,n_head=8,nx=2
                     ,sig_max=args.sig_max,mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
         else:
             self.model = MixtureDensityNetwork(

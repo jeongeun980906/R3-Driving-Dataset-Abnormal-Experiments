@@ -128,9 +128,9 @@ class solver():
             for batch_in,batch_out in data_iter:
                 x_reconst, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
-                recon += loss_out['reconst_loss']
-                kl_div += loss_out['kl_div']
-                total_loss += loss_out['loss']
+                recon += torch.sum(loss_out['reconst_loss'])
+                kl_div += torch.sum(loss_out['kl_div'])
+                total_loss += torch.sum(loss_out['loss'])
                 n_total += batch_in.size(0)
             recon_avg=(recon/n_total).detach().cpu().item()
             kl_avg = (kl_div/n_total).detach().cpu().item()

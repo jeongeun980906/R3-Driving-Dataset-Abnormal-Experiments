@@ -1,5 +1,5 @@
 cd ..
-python main.py --frame 1 --id 11 --transformer --gpu 1
+#python main.py --frame 1 --id 11 --transformer --gpu 1
 python main.py --frame 5 --id 12 --transformer --gpu 1
 python main.py --frame 10  --id 13 --transformer --gpu 1
 
