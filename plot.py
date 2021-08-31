@@ -8,10 +8,11 @@ import matplotlib.ticker as mticker
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--id', type=int,default=1,help='id')
+parser.add_argument('--mode', type=str,default='mdn',help='mdn vae')
 
 args = parser.parse_args()
 
-DIR = './res/mdn/{}/log.json'.format(args.id)
+DIR = './res/{}/{}/log.json'.format(args.mode,args.id)
 with open(DIR) as f:
     data = json.load(f)
 test_l2 = data['test_l2']
@@ -24,12 +25,19 @@ ood = data['ood_eval']
 neg_case = np.asarray(data['neg_case'])
 exp_case = np.asarray(data['exp_case'])
 f.close()
-
+if args.mode == 'mdn':
+    method = ['epis_','alea_','pi_entropy_']
+    
+elif args.mode == 'vae':
+    method = ['recon_','kl_']
+else:
+    raise NotImplementedError
 '''
 Plot NLL, AUROC, AUPR
 '''
 plt.figure(figsize=(20,20))
-grid = plt.GridSpec(5,6)
+plot_size = [2+len(method),len(method)+3]
+grid = plt.GridSpec(plot_size[0],plot_size[1])
 #plt.suptitle("MDN Learning Result")
 plt.subplot(grid[0,:5])
 plt.title("L2")
@@ -45,7 +53,7 @@ Plot ROC curve in one plot
 situation = [[0,2],[0,3],[0,6],[1,2],[1,3],[0,4],[0,5],[1,6]]
 situation_name = ['straighht_road','cross_road','unstable','lane_keeping',
                     'lane_changing','overtaking','collision']
-for k,j in enumerate(['epis_','alea_','pi_entropy_']):
+for k,j in enumerate(method):
     ood_ar = np.asarray(ood[j])
     case4 = np.where(neg_case[:,0]==1)[0] # straight_road_index
     case4 = ood_ar[case4]
@@ -66,7 +74,8 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     min_2 = np.min(ind_ar)
     min_ = min(min_1,min_2)
     max_ = max(max_1,max_2)
-    
+    print(min_,max_)
+
     plt.subplot(grid[k+1,0])
     plt.title("\n \n %s \n"%('Expert: FMTC'))
     plt.hist(case1.tolist(),color='limegreen', alpha=0.5,orientation="horizontal")
@@ -97,7 +106,7 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     plt.ylim((min_,max_))
     plt.tight_layout()
     
-    plt.subplot(grid[4,2*k:2*k+2])
+    plt.subplot(grid[len(method)+1,2*k:2*k+2])
     plt.title("ROC Curve Method: %s"%(j[:-1]))
     for i,j in situation:
         ood_temp1 = np.where(neg_case[:,i]==1)[0]
@@ -110,4 +119,4 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
         plt.plot(fpr,tpr,label='%s,%s\nAUROC:%.3f AUPR %.3f'%(situation_name[i],situation_name[j],auroc_temp,aupr_temp))
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
     plt.tight_layout()
-plt.savefig("./res/mdn_{}.png".format(args.id))
+plt.savefig("./res/{}_{}.png".format(args.mode,args.id))

@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--root', type=str,default='./dataset',help='root directory of the dataset')
 parser.add_argument('--id', type=int,default=1,help='id')
 parser.add_argument('--light', action='store_true',default=True,help='light verison')
-parser.add_argument('--transformer', action='store_true',default=False,help='transformer model')
+parser.add_argument('--mode', type=str,default='mdn',help='mdn vae')
 parser.add_argument('--gpu', type=int,default=0,help='gpu id')
 parser.add_argument('--frame', type=int,default=1,help='frame')
 parser.add_argument('--exp_case', type=int, nargs='+',default=[1,2,3],help='expert case')
@@ -48,16 +48,25 @@ Solver = solver(args,device=device,SEED=SEED)
 Solver.init_param()
 # [init, total-init]
 
-DIR = './res/mdn/{}/'.format(args.id)
-DIR2 = './res/mdn/{}/ckpt/'.format(args.id)
+if args.mode == 'mdn':
+    method = ['epis_','alea_','pi_entropy_']
+    
+elif args.mode == 'vae':
+    method = ['recon_','kl_']
+else:
+    raise NotImplementedError
+DIR = './res/{}/{}/'.format(args.mode,args.id)
+DIR2 = './res/{}/{}/ckpt/'.format(args.mode,args.id)
+
+
 try:
-    os.mkdir('./res/mdn')
+    os.mkdir('./res/{}'.format(args.mode))
 except:
     pass
 
 log = Logger(DIR+'log.json',exp_case =  Solver.test_e_dataset.case, neg_case = Solver.test_n_dataset.case)
 print(Solver.test_e_dataset.case[:,0].sum(),Solver.test_e_dataset.case[:,1].sum(),Solver.test_e_dataset.case[:,2].sum())
-method = ['epis_','alea_','pi_entropy_']
+
 try:
     os.mkdir(DIR)
 except:
@@ -73,11 +82,11 @@ f = open(txtName,'w') # Open txt file
 print_n_txt(_f=f,_chars='Text name: '+txtName)
 print_n_txt(_f=f,_chars=str(args))
 
-train_l2, test_l2 = Solver.train_mdn(f)
+train_l2, test_l2 = Solver.train_func(f)
 log.train_res(train_l2,test_l2)
 
-id_eval = Solver.eval_ood_mdn(Solver.test_e_iter,'cuda')
-ood_eval = Solver.eval_ood_mdn(Solver.test_n_iter,'cuda')
+id_eval = Solver.eval_func(Solver.test_e_iter,'cuda')
+ood_eval = Solver.eval_func(Solver.test_n_iter,'cuda')
 
 auroc, aupr = {},{}
 for m in method:

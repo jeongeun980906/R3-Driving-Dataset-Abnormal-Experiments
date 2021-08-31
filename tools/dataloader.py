@@ -1,5 +1,4 @@
 from tools.mixquality import MixQuality
-from tools.mixquality_mha import MixQuality_MHA
 from torchvision import transforms
 import torch.utils.data as data
 import torch
