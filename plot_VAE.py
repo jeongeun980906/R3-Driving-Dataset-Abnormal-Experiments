@@ -20,6 +20,7 @@ auroc = data['auroc']
 aupr = data['aupr']
 ind = data['id_eval']
 ood = data['ood_eval']
+print(np.shape(ood['recon_']))
 
 neg_case = np.asarray(data['neg_case'])
 exp_case = np.asarray(data['exp_case'])
@@ -48,6 +49,7 @@ situation_name = ['straighht_road','cross_road','unstable','lane_keeping',
 for k,j in enumerate(['recon_','kl_']):
     ood_ar = np.asarray(ood[j])
     case4 = np.where(neg_case[:,0]==1)[0] # straight_road_index
+    print(case4)
     case4 = ood_ar[case4]
     case5 = np.where(neg_case[:,1]==1)[0] # cross_road_index
     case5 = ood_ar[case5]
