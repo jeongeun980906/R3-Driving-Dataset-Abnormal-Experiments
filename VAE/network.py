@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class VAE(nn.Module):
-    def __init__(self, x_dim=33, h_dim=20, z_dim=10):
+    def __init__(self, x_dim=173, h_dim=20, z_dim=10):
         super(VAE, self).__init__()
         self.fc1 = nn.Linear(x_dim, h_dim)
         self.fc2 = nn.Linear(h_dim, z_dim)

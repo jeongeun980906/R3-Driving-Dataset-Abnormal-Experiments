@@ -112,8 +112,6 @@ class solver():
                 loss_out = VAE_loss(batch_in.to(self.device), x_recon, mu, logvar)
                 recon   = loss_out['reconst_loss'] # [N x D]
                 kl  = loss_out['kl_div'] # [N x D]
-                print(recon)
-                print(len(recon_))
                 recon_ += recon.cpu().numpy().tolist()
                 kl_ += kl.cpu().numpy().tolist()
                 n_total += batch_in.size(0)
