@@ -25,7 +25,7 @@ class solver():
 
     def load_model(self,args):
         if args.mode== 'vae':
-            self.model = VAE(x_dim=self.data_dim[0]).to(self.device)
+            self.model = VAE(x_dim=self.data_dim[0],h_dim=args.h_dim,z_dim=args.z_dim).to(self.device)
             self.train_func = self.train_VAE
             self.eval_func = self.eval_ood_VAE
         elif args.mode == 'mdn':

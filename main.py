@@ -30,6 +30,9 @@ parser.add_argument('--k', type=int,default=10,help='number of mixtures')
 parser.add_argument('--norm', type=int,default=1,help='normalize dataset elementwise')
 parser.add_argument('--sig_max', type=float,default=1,help='sig max')
 
+parser.add_argument('--h_dim', type=int,default=20,help='h dim for vae')
+parser.add_argument('--z_dim', type=int,default=10,help='z dim for vae')
+
 args = parser.parse_args()
 
 SEED = 0
