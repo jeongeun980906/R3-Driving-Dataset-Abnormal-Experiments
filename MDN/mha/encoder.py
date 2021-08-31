@@ -24,18 +24,19 @@ class Encoder(nn.Module):
     def __init__(self,ntoken,dk=64, dv=64,d_model=512,n_heads=8,dropout=0.1, nx=2):
         super(Encoder,self).__init__()
         self.positional_encodding = PositionalEncoding(emsize=d_model,dropout=dropout)
-        self.layers = nn.ModuleList([])
-        self.embedding = nn.Embedding(ntoken, d_model)
+        self.embedding = nn.Linear(ntoken, d_model)
+        self.layers = nn.ModuleList()
         for _ in range(nx):
             self.layers.append(
                 EncoderLayer(dk=dk, dv=dv,d_model=d_model,n_heads=n_heads,dropout=dropout)
             )
-        self.layers = nn.Sequential(*self.layers)
+        #self.layers = nn.Sequential(*self.layers)
         self.scale = torch.sqrt(torch.FloatTensor([d_model])).to('cuda')
-    
+
     def forward(self,x,mask=None):
         x = self.embedding(x)*self.scale
-        x = self.positional_encodding(x)
+        #print(torch.isnan(x).sum(),self.scale)
+        # x = self.positional_encodding(x)
         for layer in self.layers:
             x = layer(x,mask)
         return x

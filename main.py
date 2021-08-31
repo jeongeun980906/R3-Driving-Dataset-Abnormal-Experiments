@@ -56,6 +56,7 @@ except:
     pass
 
 log = Logger(DIR+'log.json',exp_case =  Solver.test_e_dataset.case, neg_case = Solver.test_n_dataset.case)
+print(Solver.test_e_dataset.case[:,0].sum(),Solver.test_e_dataset.case[:,1].sum(),Solver.test_e_dataset.case[:,2].sum())
 method = ['epis_','alea_','pi_entropy_']
 try:
     os.mkdir(DIR)

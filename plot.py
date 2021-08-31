@@ -98,7 +98,7 @@ for k,j in enumerate(['epis_','alea_','pi_entropy_']):
     plt.tight_layout()
     
     plt.subplot(grid[4,2*k:2*k+2])
-    plt.title("ROC Curve")
+    plt.title("ROC Curve Method: %s"%(j[:-1]))
     for i,j in situation:
         ood_temp1 = np.where(neg_case[:,i]==1)[0]
         ood_temp2 = np.where(neg_case[:,j]==1)[0]

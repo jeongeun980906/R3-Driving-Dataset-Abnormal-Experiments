@@ -6,7 +6,7 @@ import math
 
 class PositionalEncoding(nn.Module):
 
-    def __init__(self, emsize, dropout=0.1, max_len=5000):
+    def __init__(self, emsize, dropout=0.1, max_len=200):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
 
@@ -20,6 +20,7 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         x = x + self.pe[:x.size(0), :]
+        print(torch.isnan(x))
         return self.dropout(x)
 
 class MultiHeadAttentionLayer(nn.Module):
@@ -38,7 +39,7 @@ class MultiHeadAttentionLayer(nn.Module):
 
     def forward(self,query,key,value,mask=None):
         batchsize = query.size(0)
-        #print(query.size(1),key.size(1),value.size(1))
+        # print(query.size(),key.size(),value.size())
         Q = self.fc_q(query)
         K = self.fc_k(key)
         V = self.fc_v(value)
@@ -58,7 +59,6 @@ class MultiHeadAttentionLayer(nn.Module):
         x = x.permute(0,2,1,3).contiguous()
         x = x.view(batchsize,-1,self.dv*self.n_heads) # concat head
         x= self.fc_l(x) # [N x L x dmodel]
-         
         return x,attention
 
 class Point_Wise_FeedForward(nn.Module):

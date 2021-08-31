@@ -771,7 +771,7 @@ seq_list = [(50,2450),
 expert_index=[0,1,2,3,4,5,6,7,96,97,98,99,100]
 FMTC_index = [0,4,5,7,100]
 urban_index = [2,6,96,97]
-highway_index = [1,3,98,99]
+highway_index = [1,5,98,99]
 
 def check_exp_case(c):
     res = [0]*3
@@ -893,10 +893,11 @@ def load_expert_dataset(exp_path,exp_case,frame):
     for e in exp_case:
         if e==1:
             expert_index2.extend(FMTC_index)
-        if e==2:
+        elif e==2:
             expert_index2.extend(urban_index)
-        if e==3:
+        elif e==3:
             expert_index2.extend(highway_index)
+    print(expert_index2)
     for data_index in expert_index2:
         data_name = data_name_list[data_index]
         data_path = exp_path + data_name + "/"
@@ -914,29 +915,38 @@ def load_expert_dataset(exp_path,exp_case,frame):
                     data_act.append(state['ax'])
                     data_act.append(state['omega'])
                 else:
-                    data.append(state['ax'])
-                    data.append(state['omega'])
-                data.append(state['v'])
-                data.append(state['decision'])
-                data.append(state['deviation'])
+                    temp=[]
+                    temp.append(state['ax'])
+                    temp.append(state['omega'])
+                    # add dummy
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    data.append(temp)
+                temp=[]
+                temp.append(state['v'])
+                temp.append(state['decision'])
+                temp.append(state['deviation'])
+                temp.append(-1e9)
+                temp.append(-1e9)
+                temp.append(-1e9)
+                data.append(temp)
                 n_objects = len(state['objects'])
                 for i in range(MAX_N_OBJECTS):
                     if i < n_objects:
+                        temp=[]
                         obj = state['objects'][i]
-                        data.append(obj['x'])
-                        data.append(obj['y'])
-                        data.append(obj['theta'])
-                        data.append(obj['v'])
-                        data.append(obj['ax'])
-                        data.append(obj['omega'])
+                        temp.append(obj['x'])
+                        temp.append(obj['y'])
+                        temp.append(obj['theta'])
+                        temp.append(obj['v'])
+                        temp.append(obj['ax'])
+                        temp.append(obj['omega'])
+                        data.append(temp)
                     else:
-                        # add dummy
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
+                        temp = [-1e9]*6
+                        data.append(temp)
             rt.append(data)
             act.append(data_act)
             case.append(check_exp_case(data_index))
@@ -970,29 +980,38 @@ def load_negative_dataset(neg_path,frame):
                     data_act.append(state['ax'])
                     data_act.append(state['omega'])
                 else:
-                    data.append(state['ax'])
-                    data.append(state['omega'])
-                data.append(state['v'])
-                data.append(state['decision'])
-                data.append(state['deviation'])
+                    temp=[]
+                    temp.append(state['ax'])
+                    temp.append(state['omega'])
+                    # add dummy
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    temp.append(-1e9)
+                    data.append(temp)
+                temp=[]
+                temp.append(state['v'])
+                temp.append(state['decision'])
+                temp.append(state['deviation'])
+                temp.append(-1e9)
+                temp.append(-1e9)
+                temp.append(-1e9)
+                data.append(temp)
                 n_objects = len(state['objects'])
                 for i in range(MAX_N_OBJECTS):
                     if i < n_objects:
+                        temp=[]
                         obj = state['objects'][i]
-                        data.append(obj['x'])
-                        data.append(obj['y'])
-                        data.append(obj['theta'])
-                        data.append(obj['v'])
-                        data.append(obj['ax'])
-                        data.append(obj['omega'])
+                        temp.append(obj['x'])
+                        temp.append(obj['y'])
+                        temp.append(obj['theta'])
+                        temp.append(obj['v'])
+                        temp.append(obj['ax'])
+                        temp.append(obj['omega'])
+                        data.append(temp)
                     else:
-                        # add dummy
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
-                        data.append(0)
+                        temp = [-1e9]*6
+                        data.append(temp)
             rt.append(data)
             act.append(data_act)
             case.append(check_neg_case(data_index))
@@ -1001,7 +1020,7 @@ def load_negative_dataset(neg_path,frame):
 
 torch.manual_seed(0)
 
-class MixQuality():
+class MixQuality_MHA():
     def __init__(self,root = "./dataset/mixquality/",train=True,neg=False,norm=True,exp_case=[1,2,3],frame=1):
         exp_path = root + "exp/"
         neg_path = root + "neg/"
@@ -1009,20 +1028,10 @@ class MixQuality():
         self.neg = neg
         self.e_in, self.e_target,self.e_case = load_expert_dataset(exp_path,exp_case,frame)
         self.n_in, self.n_target,self.n_case = load_negative_dataset(neg_path,frame)
-        # print(self.e_in.size(),self.n_in.size(),self.e_target.size(),self.n_target.size(),frame)
+        #print(self.e_in.size(),self.n_in.size(),self.e_target.size(),self.n_target.size(),frame)
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
         self.norm = norm
-        if self.norm:
-            self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
-            self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0),dim=0)
-            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
-            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
-        else:
-            self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0))
-            self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0))
-            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0))
-            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0))
         self.load()
         self.normaize()
 
@@ -1063,17 +1072,30 @@ class MixQuality():
                 #self.is_expert = torch.zeros_like(n_idx)
             self.e_label = e_idx.size(0)
         print(self.case.size())
+
     def normaize(self):
         if self.norm:
+            extract = torch.cat((self.e_in,self.n_in),dim=0)
+            mask = extract!=-1e9
+            self.mean_in = (extract*mask).sum(dim=0)/mask.sum(dim=0)
+            self.std_in = torch.sqrt(((extract*mask)**2).sum(dim=0)/mask.sum(dim=0)-self.mean_in**2)
+            self.mean_in[self.mean_in != self.mean_in] = 0 # Handle Nan
+            self.std_in[self.std_in != self.std_in] = 1 # Handle Nan
+            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
+            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0),dim=0)
             self.x = (self.x - self.mean_in)/(self.std_in)
             self.y = (self.y - self.mean_t)/(self.std_t)
-            self.x[self.x != self.x] = 0
-            self.y[self.y != self.y] = 0
+            self.x[self.x != self.x] = 0 # Handle Nan
+            self.y[self.y != self.y] = 0 # Handle Nan
         else:
             self.x = self.x.sub_(self.mean_in).div_(self.std_in)
             self.y = self.y.sub(self.mean_t).div_(self.std_t)
+            self.mean_in = torch.mean(torch.cat((self.e_in,self.n_in),dim=0))
+            self.std_in = torch.std(torch.cat((self.e_in,self.n_in),dim=0))
+            self.mean_t = torch.mean(torch.cat((self.e_target,self.n_target),dim=0))
+            self.std_t = torch.std(torch.cat((self.e_target,self.n_target),dim=0))
         #print(self.x,self.y)
 
 if __name__ == '__main__':
-    m = MixQuality(root='../dataset/mixquality/',train=False,neg=True)
+    m = MixQuality_MHA(root='../dataset/mixquality/',train=False,neg=True)
     print(m.y[:100])

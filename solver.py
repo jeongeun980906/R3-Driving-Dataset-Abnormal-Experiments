@@ -6,8 +6,8 @@ from tools.utils import print_n_txt
 from MDN.loss import mdn_loss,mdn_eval,mdn_uncertainties
 from MDN.network import MixtureDensityNetwork
 from MDN.mha_network import MixtureDensityNetwork_MHA
-from tools.dataloader import total_dataset
-
+from tools.dataloader import mixquality_dataset,mixquality_dataset_mha
+import time
 class solver():
     def __init__(self,args,device,SEED):
         self.EPOCH = args.epoch
@@ -24,7 +24,7 @@ class solver():
     def load_model(self,args):
         if args.transformer:
             self.model = MixtureDensityNetwork_MHA(
-                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,h_dim=128,nx=2
+                    name='mdn',x_dim=self.data_dim[0], y_dim=self.data_dim[1],k=args.k,n_head=3,nx=2
                     ,sig_max=args.sig_max,mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
         else:
             self.model = MixtureDensityNetwork(
@@ -35,21 +35,38 @@ class solver():
         self.model.init_param()
     
     def load_iter(self,args):
-        if args.light:
-            root = args.root+'/light_mixquality/'
+        if args.transformer:
+            if args.light:
+                root = args.root+'/light_mixquality/'
+            else:
+                root = args.root+'/mixquality/'
+            self.train_dataset = mixquality_dataset_mha(root = root, train=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
+            torch.manual_seed(self.SEED)
+            self.test_e_dataset = mixquality_dataset_mha(root = root, train=False,neg=False,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.test_e_iter = torch.utils.data.DataLoader(self.test_e_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
+            torch.manual_seed(self.SEED)
+            self.test_n_dataset = mixquality_dataset_mha(root = root, train=False,neg=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.test_n_iter = torch.utils.data.DataLoader(self.test_n_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
         else:
-            root = args.root+'/mixquality/'
-        self.train_dataset = total_dataset(root = root, train=True,norm=args.norm,frame=args.frame)
-        self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
-                                shuffle=False)
-        torch.manual_seed(self.SEED)
-        self.test_e_dataset = total_dataset(root = root, train=False,neg=False,norm=args.norm,frame=args.frame)
-        self.test_e_iter = torch.utils.data.DataLoader(self.test_e_dataset, batch_size=args.batch_size, 
-                                shuffle=False)
-        torch.manual_seed(self.SEED)
-        self.test_n_dataset = total_dataset(root = root, train=False,neg=True,norm=args.norm,frame=args.frame)
-        self.test_n_iter = torch.utils.data.DataLoader(self.test_n_dataset, batch_size=args.batch_size, 
-                                shuffle=False)
+            if args.light:
+                root = args.root+'/light_mixquality/'
+            else:
+                root = args.root+'/mixquality/'
+            self.train_dataset = mixquality_dataset(root = root, train=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
+            torch.manual_seed(self.SEED)
+            self.test_e_dataset = mixquality_dataset(root = root, train=False,neg=False,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.test_e_iter = torch.utils.data.DataLoader(self.test_e_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
+            torch.manual_seed(self.SEED)
+            self.test_n_dataset = mixquality_dataset(root = root, train=False,neg=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
+            self.test_n_iter = torch.utils.data.DataLoader(self.test_n_dataset, batch_size=args.batch_size, 
+                                    shuffle=False)
 
         self.data_dim = [self.train_dataset.x.size(-1), self.train_dataset.y.size(-1)]
 
