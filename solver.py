@@ -7,7 +7,7 @@ from tools.utils import print_n_txt
 from MDN.loss import mdn_loss,mdn_eval,mdn_uncertainties
 from MDN.network import MixtureDensityNetwork
 from VAE.network import VAE
-from VAE.loss import VAE_loss
+from VAE.loss import VAE_loss,VAE_eval
 from tools.dataloader import mixquality_dataset
 
 import time
@@ -104,7 +104,7 @@ class solver():
                 print(batch_in.size(),batch_out.size())
                 batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_recon, mu, logvar = self.model.forward(batch_in.to(device))
-                loss_out = VAE_loss(batch_in.to(self.device), x_recon, mu, logvar)
+                loss_out = VAE_eval(batch_in.to(self.device), x_recon, mu, logvar)
                 recon   = loss_out['reconst_loss'] # [N x D]
                 kl  = loss_out['kl_div'] # [N x D]
                 recon_ += recon.cpu().numpy().tolist()
@@ -121,7 +121,7 @@ class solver():
             for batch_in,batch_out in data_iter:
                 batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar = self.model.forward(batch_in.to(device))
-                loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
+                loss_out = VAE_eval(batch_in.to(self.device), x_reconst, mu, logvar)
                 recon += torch.sum(loss_out['reconst_loss'])
                 kl_div += torch.sum(loss_out['kl_div'])
                 total_loss += torch.sum(loss_out['loss'])
