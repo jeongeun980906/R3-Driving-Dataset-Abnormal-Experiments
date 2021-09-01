@@ -44,6 +44,7 @@ class solver():
             root = args.root+'/light_mixquality/'
         else:
             root = args.root+'/mixquality/'
+        print("Loading Dataset")
         self.train_dataset = mixquality_dataset(root = root, train=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
         self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
                                 shuffle=False)
@@ -57,7 +58,8 @@ class solver():
                                 shuffle=False)
 
         self.data_dim = [self.train_dataset.x.size(-1), self.train_dataset.y.size(-1)]
-    
+        print("Done!")
+
     def train_VAE(self, f):
         optimizer = optim.Adam(self.model.parameters(),lr=self.lr,weight_decay=self.wd,eps=1e-8)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=self.lr_rate, step_size=self.lr_step)
@@ -101,7 +103,6 @@ class solver():
             recon_ , kl_  = list(),list()
             self.model.eval() # evaluate (affects DropOut and BN)
             for batch_in,batch_out in data_iter:
-                print(batch_in.size(),batch_out.size())
                 batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_recon, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_eval(batch_in.to(self.device), x_recon, mu, logvar)
@@ -121,7 +122,7 @@ class solver():
             for batch_in,batch_out in data_iter:
                 batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar = self.model.forward(batch_in.to(device))
-                loss_out = VAE_eval(batch_in.to(self.device), x_reconst, mu, logvar)
+                loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
                 recon += torch.sum(loss_out['reconst_loss'])
                 kl_div += torch.sum(loss_out['kl_div'])
                 total_loss += torch.sum(loss_out['loss'])
