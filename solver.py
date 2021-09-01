@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import torch.nn.functional as F
 from tools.utils import print_n_txt
 
 from MDN.loss import mdn_loss,mdn_eval,mdn_uncertainties
@@ -25,7 +26,7 @@ class solver():
 
     def load_model(self,args):
         if args.mode== 'vae':
-            self.model = VAE(x_dim=self.data_dim[0],h_dim=args.h_dim,z_dim=args.z_dim).to(self.device)
+            self.model = VAE(x_dim=self.data_dim[0]+self.data_dim[1],h_dim=args.h_dim,z_dim=args.z_dim).to(self.device)
             self.train_func = self.train_VAE
             self.eval_func = self.eval_ood_VAE
         elif args.mode == 'mdn':
@@ -65,12 +66,13 @@ class solver():
         for epoch in range(self.EPOCH):
             loss_sum = 0.0
             for batch_in,batch_out in self.train_iter:
+                batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar =  self.model.forward(batch_in.to(self.device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
                 loss = torch.mean(loss_out['loss'])
                 optimizer.zero_grad() # reset gradient
                 loss.backward() # back-propagation
-                # torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
                 optimizer.step() # optimizer update
                 # Track losses
                 loss_sum += loss
@@ -98,7 +100,9 @@ class solver():
             n_total= 0
             recon_ , kl_  = list(),list()
             self.model.eval() # evaluate (affects DropOut and BN)
-            for batch_in,_ in data_iter:
+            for batch_in,batch_out in data_iter:
+                print(batch_in.size(),batch_out.size())
+                batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_recon, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_recon, mu, logvar)
                 recon   = loss_out['reconst_loss'] # [N x D]
@@ -115,6 +119,7 @@ class solver():
             n_total,recon,kl_div,total_loss = 0,0,0,0
             self.model.eval() 
             for batch_in,batch_out in data_iter:
+                batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
                 recon += torch.sum(loss_out['reconst_loss'])

@@ -75,6 +75,7 @@ for k,j in enumerate(method):
     min_ = min(min_1,min_2)
     max_ = max(max_1,max_2)
     print(min_,max_)
+    print(np.mean(case1),np.mean(case2),np.mean(case3))
 
     plt.subplot(grid[k+1,0])
     plt.title("\n \n %s \n"%('Expert: FMTC'))

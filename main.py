@@ -26,11 +26,13 @@ parser.add_argument('--dropout', type=float,default=0.25,help='dropout rate')
 parser.add_argument('--lr_rate', type=float,default=0.9,help='learning rate schedular rate')
 parser.add_argument('--lr_step', type=int,default=50,help='learning rate schedular rate')
 
+# Parser for MDN
 parser.add_argument('--k', type=int,default=10,help='number of mixtures')
 parser.add_argument('--norm', type=int,default=1,help='normalize dataset elementwise')
 parser.add_argument('--sig_max', type=float,default=1,help='sig max')
 
-parser.add_argument('--h_dim', type=int,default=20,help='h dim for vae')
+# Parser for VAE
+parser.add_argument('--h_dim',  type=int, nargs='+',default=[20],help='h dim for vae')
 parser.add_argument('--z_dim', type=int,default=10,help='z dim for vae')
 
 args = parser.parse_args()
