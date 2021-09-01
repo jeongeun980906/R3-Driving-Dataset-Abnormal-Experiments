@@ -7,6 +7,7 @@ class VAE(nn.Module):
     def __init__(self, x_dim=173, h_dim=[20], z_dim=10):
         super(VAE, self).__init__()
         self.encoder_layer = nn.ModuleList()
+        print(h_dim)
         previous = x_dim
         for h in h_dim:
             self.encoder_layer.append(

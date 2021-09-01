@@ -19,7 +19,7 @@ class solver():
         self.wd = args.wd
         self.lr_rate = args.lr_rate
         self.lr_step = args.lr_step
-        self.CLIP = 0.1
+        self.CLIP = 1
         self.SEED=SEED
         self.load_iter(args)
         self.load_model(args)
