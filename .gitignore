@@ -1,5 +1,5 @@
 /dataset
-/res
+#/res
 __pycache__
 tools/__pycache__
 MDN/__pycache__

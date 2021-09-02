@@ -12,10 +12,10 @@ def VAE_loss(x, x_reconst, mu, log_var):
     return out
 
 def VAE_eval(x, x_reconst, mu, log_var):
-    TEMP = 1 # Temperature
+    TEMP = 10 # Temperature
     x = F.sigmoid(x/TEMP)
     x_reconst = F.sigmoid(x_reconst/TEMP)
-    reconst_loss = F.mse_loss(x_reconst/TEMP, x/TEMP, reduce=False) # [N x D] # l2?
+    reconst_loss = F.mse_loss(x_reconst, x, reduce=False) # [N x D] # l2?
     reconst_loss = torch.mean(reconst_loss,axis=-1) # [N]
     kl_div = - 0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp(),dim=-1) # [N]
     loss = reconst_loss+kl_div
