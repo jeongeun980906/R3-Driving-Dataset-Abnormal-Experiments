@@ -4,8 +4,7 @@ This repository is abnormal experiments on paper:
 
 **Towards Defensive Autonomous Driving: Collecting and Probing Driving Demonstration of Mixed Qualities.**
 
-![plot_1](./res.png)
-
+<img src="./res.png" width="400"/>
 ## Download Dataset
 Clone R3-Driving Dataset from [Dataset](https://github.com/rllab-snu/R3-Driving-Dataset)
 '''
@@ -72,7 +71,7 @@ optional arguments:
   --mode MODE  mdn vae
 
 example)
-![plot_2](./res/mdn_1.png)
+<img src="./res/mdn_1.png" width="200"/>
 where first row presents loss over epoch,
 second row denotes histogram of each expert and abnormal data
 third row is ROC curve among each uncertainty measures.
