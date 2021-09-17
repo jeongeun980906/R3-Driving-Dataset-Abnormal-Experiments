@@ -6,7 +6,7 @@ from numpy.core.fromnumeric import size
 from tools.measure_ood import measure
 
 MODE = ['mdn','vae']
-ID = [1,21]
+ID = [1,1]
 method = [['epis_','alea_','pi_entropy_'],['recon_']]
 auroc,aupr,ind,ood={},{},{},{}
 for i,(m,idx) in enumerate(zip(MODE,ID)):
@@ -65,7 +65,7 @@ for a,k in enumerate(method):
             plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.,fontsize='xx-large')
         plt.tight_layout()
 
-ID = [2,22]
+ID = [2,2]
 method = [['epis_','alea_','pi_entropy_'],['recon_']]
 auroc,aupr,ind,ood={},{},{},{}
 for i,(m,idx) in enumerate(zip(MODE,ID)):
@@ -116,4 +116,4 @@ for a,k in enumerate(method):
         #else:
         plt.tight_layout()
 
-plt.savefig("imsii_1.png")
+plt.savefig("res.png")

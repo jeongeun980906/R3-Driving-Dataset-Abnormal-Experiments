@@ -10,9 +10,8 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root', type=str,default='./dataset',help='root directory of the dataset')
+parser.add_argument('--root', type=str,default='.',help='root directory of the dataset')
 parser.add_argument('--id', type=int,default=1,help='id')
-parser.add_argument('--light', action='store_true',default=True,help='light verison')
 parser.add_argument('--mode', type=str,default='mdn',help='mdn vae')
 parser.add_argument('--gpu', type=int,default=0,help='gpu id')
 parser.add_argument('--frame', type=int,default=1,help='frame')

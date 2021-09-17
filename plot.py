@@ -74,11 +74,9 @@ for k,j in enumerate(method):
     min_2 = np.min(ind_ar)
     min_ = min(min_1,min_2)
     max_ = max(max_1,max_2)
-    print(min_,max_)
-    print(np.mean(case1),np.mean(case2),np.mean(case3))
-
+    
     plt.subplot(grid[k+1,0])
-    plt.title("\n \n %s \n"%('Expert: FMTC'))
+    plt.title("\n \n %s \n"%('Expert: highway'))
     plt.hist(case1.tolist(),color='limegreen', alpha=0.5,orientation="horizontal")
     plt.ylim((min_,max_))
     plt.tight_layout()
@@ -90,7 +88,7 @@ for k,j in enumerate(method):
     plt.tight_layout()
 
     plt.subplot(grid[k+1,2])
-    plt.title("Eval Method: %s \nAUROC:[%.3f] AUPR: [%.3f] \n %s \n"%(j[:-1],auroc[j],aupr[j],'Expert: HigWay'))
+    plt.title("Eval Method: %s \nAUROC:[%.3f] AUPR: [%.3f] \n %s \n"%(j[:-1],auroc[j],aupr[j],'Expert: FMTC'))
     plt.hist(case3.tolist(),color='lightseagreen', alpha=0.5,orientation="horizontal")
     plt.ylim((min_,max_))
     plt.tight_layout()

@@ -1,7 +1,7 @@
 /dataset
-#/res
+/res/mdn/1
 __pycache__
 tools/__pycache__
 MDN/__pycache__
 .python-version
-.gd/
+/R3-Driving-Dataset

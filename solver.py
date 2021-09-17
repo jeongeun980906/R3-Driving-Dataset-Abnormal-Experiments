@@ -26,7 +26,7 @@ class solver():
 
     def load_model(self,args):
         if args.mode== 'vae':
-            self.model = VAE(x_dim=self.data_dim[0]+self.data_dim[1],h_dim=args.h_dim,z_dim=args.z_dim).to(self.device)
+            self.model = VAE(x_dim=self.data_dim[0],h_dim=args.h_dim,z_dim=args.z_dim).to(self.device)
             self.train_func = self.train_VAE
             self.eval_func = self.eval_ood_VAE
         elif args.mode == 'mdn':
@@ -40,10 +40,7 @@ class solver():
         self.model.init_param()
     
     def load_iter(self,args):
-        if args.light:
-            root = args.root+'/light_mixquality/'
-        else:
-            root = args.root+'/mixquality/'
+        root = args.root+'/R3-Driving-Dataset/dataset/'
         print("Loading Dataset")
         self.train_dataset = mixquality_dataset(root = root, train=True,norm=args.norm,frame=args.frame,exp_case=args.exp_case)
         self.train_iter = torch.utils.data.DataLoader(self.train_dataset, batch_size=args.batch_size, 
@@ -68,7 +65,7 @@ class solver():
         for epoch in range(self.EPOCH):
             loss_sum = 0.0
             for batch_in,batch_out in self.train_iter:
-                batch_in = torch.cat((batch_in,batch_out),dim=1)
+                #batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar =  self.model.forward(batch_in.to(self.device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
                 loss = torch.mean(loss_out['loss'])
@@ -103,7 +100,7 @@ class solver():
             recon_ , kl_  = list(),list()
             self.model.eval() # evaluate (affects DropOut and BN)
             for batch_in,batch_out in data_iter:
-                batch_in = torch.cat((batch_in,batch_out),dim=1)
+                #batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_recon, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_eval(batch_in.to(self.device), x_recon, mu, logvar)
                 recon   = loss_out['reconst_loss'] # [N x D]
@@ -120,7 +117,7 @@ class solver():
             n_total,recon,kl_div,total_loss = 0,0,0,0
             self.model.eval() 
             for batch_in,batch_out in data_iter:
-                batch_in = torch.cat((batch_in,batch_out),dim=1)
+                #batch_in = torch.cat((batch_in,batch_out),dim=1)
                 x_reconst, mu, logvar = self.model.forward(batch_in.to(device))
                 loss_out = VAE_loss(batch_in.to(self.device), x_reconst, mu, logvar)
                 recon += torch.sum(loss_out['reconst_loss'])
