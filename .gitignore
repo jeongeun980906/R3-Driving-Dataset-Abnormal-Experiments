@@ -1,5 +1,5 @@
 /dataset
-/res/mdn/1
+/res/mdn/*
 __pycache__
 tools/__pycache__
 MDN/__pycache__
