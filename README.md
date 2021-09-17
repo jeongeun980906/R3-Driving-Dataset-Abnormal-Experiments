@@ -1,6 +1,6 @@
 # MDN-DrivingDataset
 
-This repository is abnormal experiments on paper:
+This repository is abnormal experiments of the following paper:
 
 **Towards Defensive Autonomous Driving: Collecting and Probing Driving Demonstration of Mixed Qualities.**
 
