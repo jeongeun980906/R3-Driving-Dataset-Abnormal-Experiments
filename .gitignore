@@ -1,5 +1,6 @@
 /dataset
 /res/mdn/*
+/res/vae/*
 __pycache__
 tools/__pycache__
 MDN/__pycache__
