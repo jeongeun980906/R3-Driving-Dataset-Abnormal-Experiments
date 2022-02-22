@@ -101,5 +101,5 @@ for m in method:
     aupr[m] = temp2
 
 log.ood(id_eval,ood_eval,auroc,aupr)
-torch.save(Solver.model,DIR2+'model.pth')
+torch.save(Solver.model.state_dict(),DIR2+'model.pt')
 log.save()

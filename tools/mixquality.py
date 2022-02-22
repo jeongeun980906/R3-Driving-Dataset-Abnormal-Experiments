@@ -1,5 +1,6 @@
 import json
 import torch
+import numpy as np
 
 exp_data_name_list = ['expert/scenario_%03d'%(i) for i in range(1,14)]
 neg_data_name_list = ['abnormal/scenario_%03d'%(i) for i in range(1,370)]
@@ -15,6 +16,7 @@ def load_expert_dataset(path,frame):
     rt = []
     act = []
     case = []
+    file = []
     for data_path in exp_data_name_list:
         data_info_path = path + data_path + "/summary.json"
         state_path = path + data_path + "/data/"
@@ -26,6 +28,7 @@ def load_expert_dataset(path,frame):
         for seq in range(1, en + 1 - frame):
             data = []
             data_act = []
+            state_file_index = state_path + str(seq).zfill(6) + ".json"
             for it in range(frame):
                 state_file = state_path + str(seq+it).zfill(6) + ".json"
                 with open(state_file, "r") as st_json:
@@ -60,7 +63,8 @@ def load_expert_dataset(path,frame):
             rt.append(data)
             act.append(data_act)
             case.append(c)
-    return torch.FloatTensor(rt), torch.FloatTensor(act),torch.FloatTensor(case)
+            file.append(state_file_index)
+    return torch.FloatTensor(rt), torch.FloatTensor(act),torch.FloatTensor(case), np.asarray(file)
 
 def load_negative_dataset(path,frame):
     """
@@ -72,6 +76,7 @@ def load_negative_dataset(path,frame):
     rt = []
     act = []
     case = []
+    file = []
     for data_path in neg_data_name_list:
         data_info_path = path + data_path + "/summary.json"
         state_path = path + data_path + "/data/"
@@ -86,6 +91,7 @@ def load_negative_dataset(path,frame):
         for seq in range(1, en + 1-frame):
             data = []
             data_act = []
+            state_file_index = state_path + str(seq).zfill(6) + ".json"
             for it in range(frame):
                 state_file = state_path + str(seq+it).zfill(6) + ".json"
                 with open(state_file, "r") as st_json:
@@ -120,7 +126,8 @@ def load_negative_dataset(path,frame):
             rt.append(data)
             act.append(data_act)
             case.append(c)
-    return torch.FloatTensor(rt), torch.FloatTensor(act), torch.FloatTensor(case)
+            file.append(state_file_index)
+    return torch.FloatTensor(rt), torch.FloatTensor(act), torch.FloatTensor(case),np.asarray(file)
 
 torch.manual_seed(0)
 
@@ -128,8 +135,8 @@ class MixQuality():
     def __init__(self,root = "./R3-Driving-Dataset",train=True,neg=False,norm=True,exp_case=[1,2,3],frame=1):
         self.train=train
         self.neg = neg
-        self.e_in, self.e_target,self.e_case = load_expert_dataset(root,frame)
-        self.n_in, self.n_target,self.n_case = load_negative_dataset(root,frame)
+        self.e_in, self.e_target,self.e_case, self.file_expert = load_expert_dataset(root,frame)
+        self.n_in, self.n_target,self.n_case, self.file_negative = load_negative_dataset(root,frame)
         # print(self.e_in.size(),self.n_in.size(),self.e_target.size(),self.n_target.size(),frame)
         self.e_size = self.e_in.size(0)
         self.n_size = self.n_in.size(0)
@@ -157,6 +164,7 @@ class MixQuality():
             self.x = e_in
             self.y = e_target
             self.case = self.e_case[e_idx]
+            self.path = self.file_expert[e_idx.numpy()]
             # self.x = torch.cat((e_in,n_in),dim=0)
             # self.y = torch.cat((e_target,n_target),dim=0)
             # self.is_expert = torch.cat((torch.ones_like(e_idx),torch.zeros_like(n_idx)),dim=0)
@@ -168,11 +176,13 @@ class MixQuality():
                 self.x = self.e_in[e_idx]
                 self.y = self.e_target[e_idx]
                 self.case = self.e_case[e_idx]
+                self.path = self.file_expert[e_idx.numpy()]
                 #self.is_expert = torch.ones_like(e_idx)
             else:
                 self.x = self.n_in
                 self.y = self.n_target
                 self.case = self.n_case
+                self.path = self.file_negative
                 # self.x = self.n_in[n_idx]
                 # self.y = self.n_target[n_idx]
                 # self.case = self.n_case[n_idx]

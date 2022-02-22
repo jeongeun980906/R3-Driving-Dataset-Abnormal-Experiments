@@ -10,6 +10,7 @@ class mixquality_dataset(data.Dataset):
         self.y = mix.y
         self.e_label = mix.e_label
         self.case = mix.case
+        self.path = mix.path
 
     def __getitem__(self, index):
         data, target = self.x[index], self.y[index]
