@@ -34,6 +34,13 @@ parser.add_argument('--sig_max', type=float,default=1,help='sig max')
 parser.add_argument('--h_dim',  type=int, nargs='+',default=[20],help='h dim for vae')
 parser.add_argument('--z_dim', type=int,default=10,help='z dim for vae')
 
+# Parser for Variants
+parser.add_argument('--lambda_mmd', type=float,default=10.0,help='lambda for mmd')
+parser.add_argument('--lambda_z', type=float,default=0.1,help='lambda for z')
+parser.add_argument('--sigma', type=float,default=1.0,help='sigma for mmd')
+parser.add_argument('--num_embeddings', type=int,default=512,help='number of embeddings for vq')
+parser.add_argument('--commitment_cost', type=float,default=0.25,help='commitment cost for vq')
+
 args = parser.parse_args()
 
 SEED = 0
@@ -57,6 +64,16 @@ if args.mode == 'mdn':
     
 elif args.mode == 'vae':
     method = ['recon_','kl_']
+
+elif args.mode == 'vqvae':
+    method = ['recon_','vq_']
+
+elif args.mode == 'wae':
+    method = ['recon_','mmd_']
+
+elif args.mode == 'rae':
+    method = ['recon_','zreg_']
+    
 else:
     raise NotImplementedError
 DIR = './res/{}/{}/'.format(args.mode,args.id)

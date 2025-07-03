@@ -5,9 +5,10 @@ import numpy as np
 from numpy.core.fromnumeric import size
 from tools.measure_ood import measure
 
-MODE = ['mdn','vae']
+MODE = ['wae','rae']
 ID = [1,1]
-method = [['epis_','alea_','pi_entropy_'],['recon_']]
+
+method = [['recon_','mmd_'],['recon_','zreg_']]
 auroc,aupr,ind,ood={},{},{},{}
 for i,(m,idx) in enumerate(zip(MODE,ID)):
     print(m,i,idx)
@@ -35,6 +36,7 @@ fig = plt.figure(figsize=(25,10)) # 15 15
 #fig.text(0.25, 0.97, "frame1", fontsize=28)
 fig_index=0
 for a,k in enumerate(method):
+
     for m in k:
         ood_ar = np.asarray(ood[m])
         ind_ar = np.asarray(ind[m])
@@ -44,7 +46,11 @@ for a,k in enumerate(method):
         # else:
         #     fig_index+=1
         fig_index+=1
-        plt.title("frame1: %s\n AUROC: %.3f AUPR: %.3f"%(m[:-1],auroc[m],aupr[m]),fontsize=17)
+        if m == 'recon_':
+            name = "recon_wae" if a == 0 else "recon_rae"
+        else:
+            name = m[:-1]
+        plt.title("frame1: %s\n AUROC: %.3f AUPR: %.3f"%(name,auroc[m],aupr[m]),fontsize=17)
         A=0
         for i,j in situation:
             ood_temp1 = np.where(neg_case[:,i]==1)[0]
@@ -61,12 +67,12 @@ for a,k in enumerate(method):
         # text = legend.get_texts()
         # for i in text:
         #     i.set_fontsize(15)
-        if m == 'recon_':
-            plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.,fontsize='xx-large')
+        # if m == 'recon_':
+        #     plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.,fontsize='xx-large')
         plt.tight_layout()
 
 ID = [2,2]
-method = [['epis_','alea_','pi_entropy_'],['recon_']]
+method = [['recon_','mmd_'],['recon_','zreg_']]
 auroc,aupr,ind,ood={},{},{},{}
 for i,(m,idx) in enumerate(zip(MODE,ID)):
     print(m,i,idx)
@@ -97,7 +103,11 @@ for a,k in enumerate(method):
         # else:
         #     fig_index+=1
         fig_index+=1
-        plt.title("frame5: %s\n AUROC: %.3f AUPR: %.3f"%(m[:-1],auroc[m],aupr[m]),fontsize=17)
+        if m == 'recon_':
+            name = "recon_wae" if a == 0 else "recon_rae"
+        else:
+            name = m[:-1]
+        plt.title("frame5: %s\n AUROC: %.3f AUPR: %.3f"%(name,auroc[m],aupr[m]),fontsize=17)
         A=0
         for i,j in situation:
             ood_temp1 = np.where(neg_case[:,i]==1)[0]
@@ -111,9 +121,9 @@ for a,k in enumerate(method):
             plt.plot(fpr,tpr,label='%s %s'%(situation_name[i],situation_name[j]),linestyle=linestyles[A])
             A+=1
         #plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),ncol=2,fontsize='xx-large')
-        # if m == 'recon_':
-        #     plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.,fontsize='x-large')
-        #else:
+        if m == 'recon_':
+            plt.legend(bbox_to_anchor=(1.05, 1),loc=2, borderaxespad=0.,fontsize='x-large')
+        # else:
         plt.tight_layout()
 
 plt.savefig("res.png")
