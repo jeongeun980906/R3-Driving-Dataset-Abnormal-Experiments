@@ -3,7 +3,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from tools.utils import print_n_txt
-
+from VAE.variants import WAE, RAE, VQVAE
 from MDN.loss import mdn_loss,mdn_eval,mdn_uncertainties
 from MDN.network import MixtureDensityNetwork
 from VAE.network import VAE
@@ -35,6 +35,35 @@ class solver():
                     mu_min=-3,mu_max=+3,dropout=args.dropout).to(self.device)
             self.train_func = self.train_mdn
             self.eval_func = self.eval_ood_mdn
+        # === NEW: WAE ===
+        elif args.mode == 'wae':
+            self.model      = WAE(x_dim=self.data_dim[0],
+                                   h_dim=args.h_dim,
+                                   z_dim=args.z_dim,
+                                   lambda_mmd=args.lambda_mmd,
+                                   sigma=args.sigma).to(self.device)
+            self.train_func = self.train_WAE
+            self.eval_func  = self.eval_ood_WAE
+
+        # === NEW: RAE ===
+        elif args.mode == 'rae':
+            self.model      = RAE(x_dim=self.data_dim[0],
+                                   h_dim=args.h_dim,
+                                   z_dim=args.z_dim,
+                                   lambda_z=args.lambda_z).to(self.device)
+            self.train_func = self.train_RAE
+            self.eval_func  = self.eval_ood_RAE
+
+        # === NEW: VQ-VAE ===
+        elif args.mode == 'vqvae':
+            self.model      = VQVAE(x_dim=self.data_dim[0],
+                                     h_dim=args.h_dim,
+                                     z_dim=args.z_dim,
+                                     num_embeddings=args.num_embeddings,
+                                     commitment_cost=args.commitment_cost).to(self.device)
+            self.train_func = self.train_VQVAE
+            self.eval_func  = self.eval_ood_VQVAE
+
 
     def init_param(self):
         self.model.init_param()
@@ -130,6 +159,244 @@ class solver():
             self.model.train() # back to train mode
             out_eval = {'recon':recon_avg,'kl_div':kl_avg, 'total':total_avg}
         return out_eval
+
+    # ----- WAE -----
+    def train_WAE(self, f):
+        optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd, eps=1e-8)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=self.lr_rate, step_size=self.lr_step)
+        train_losses, id_losses = [], []
+
+        for epoch in range(self.EPOCH):
+            epoch_loss = 0.0
+            for x, _ in self.train_iter:
+                x = x.to(self.device)
+                # forward
+                x_recon, mu, logvar = self.model(x)
+                # compute WAE loss (uses compute_mmd under the hood)
+                loss, info = self.model.loss_function(x_recon, x, mu)
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
+                optimizer.step()
+                epoch_loss += loss.item()
+            scheduler.step()
+
+            # evaluate on ID / OOD
+            id_stats  = self.test_eval_WAE(self.test_e_iter, self.device)
+            ood_stats = self.test_eval_WAE(self.test_n_iter, self.device)
+
+            msg = (f"[WAE][Epoch {epoch+1}/{self.EPOCH}]  "
+                   f"Loss={epoch_loss/len(self.train_iter):.4f}  "
+                   f"ID recon={id_stats['recon']:.4f}, MMD={id_stats['mmd']:.4f}  "
+                   f"OOD recon={ood_stats['recon']:.4f}, MMD={ood_stats['mmd']:.4f}")
+            print_n_txt(f, msg)
+
+            train_losses.append(epoch_loss/len(self.train_iter))
+            id_losses.append(id_stats['loss'])
+
+        # (optional) save final weights
+        torch.save(self.model.state_dict(), f"wae_{self.SEED}.pth")
+        return train_losses, id_losses
+
+    def test_eval_WAE(self, data_iter, device):
+        with torch.no_grad():
+            recon_sum, mmd_sum, total_sum, n = 0.0, 0.0, 0.0, 0
+            self.model.eval()
+            for x, _ in data_iter:
+                x = x.to(device)
+                x_recon, mu, _ = self.model(x)
+                loss, info     = self.model.loss_function(x_recon, x, mu)
+                batch_size     = x.size(0)
+                recon_sum += info['recon'] * batch_size
+                mmd_sum   += info['mmd']   * batch_size
+                total_sum += loss.item()   * batch_size
+                n += batch_size
+            self.model.train()
+            return {
+                'recon': recon_sum / n,
+                'mmd':   mmd_sum   / n,
+                'loss':  total_sum / n
+            }
+
+    # ----- RAE -----
+    def train_RAE(self, f):
+        optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd, eps=1e-8)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=self.lr_rate, step_size=self.lr_step)
+        train_losses, id_losses = [], []
+
+        for epoch in range(self.EPOCH):
+            epoch_loss = 0.0
+            for x, _ in self.train_iter:
+                x = x.to(self.device)
+                x_recon, mu, logvar = self.model(x)
+                loss, info = self.model.loss_function(x_recon, x, mu)
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
+                optimizer.step()
+                epoch_loss += loss.item()
+            scheduler.step()
+
+            id_stats  = self.test_eval_RAE(self.test_e_iter, self.device)
+            ood_stats = self.test_eval_RAE(self.test_n_iter, self.device)
+
+            msg = (f"[RAE][Epoch {epoch+1}/{self.EPOCH}]  "
+                   f"Loss={epoch_loss/len(self.train_iter):.4f}  "
+                   f"ID recon={id_stats['recon']:.4f}, ZReg={id_stats['zreg']:.4f}  "
+                   f"OOD recon={ood_stats['recon']:.4f}, ZReg={ood_stats['zreg']:.4f}")
+            print_n_txt(f, msg)
+
+            train_losses.append(epoch_loss/len(self.train_iter))
+            id_losses.append(id_stats['loss'])
+
+        torch.save(self.model.state_dict(), f"rae_{self.SEED}.pth")
+        return train_losses, id_losses
+
+    def test_eval_RAE(self, data_iter, device):
+        with torch.no_grad():
+            recon_sum, zreg_sum, total_sum, n = 0.0, 0.0, 0.0, 0
+            self.model.eval()
+            for x, _ in data_iter:
+                x = x.to(device)
+                x_recon, mu, _ = self.model(x)
+                loss, info     = self.model.loss_function(x_recon, x, mu)
+                batch_size     = x.size(0)
+                recon_sum += info['recon'] * batch_size
+                zreg_sum  += info['zreg'] * batch_size
+                total_sum += loss.item()   * batch_size
+                n += batch_size
+            self.model.train()
+            return {
+                'recon': recon_sum / n,
+                'zreg':  zreg_sum  / n,
+                'loss':  total_sum / n
+            }
+
+    # ----- VQ-VAE -----
+    def train_VQVAE(self, f):
+        optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd, eps=1e-8)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, gamma=self.lr_rate, step_size=self.lr_step)
+        train_losses, id_losses = [], []
+
+        for epoch in range(self.EPOCH):
+            epoch_loss = 0.0
+            for x, _ in self.train_iter:
+                x = x.to(self.device)
+                x_recon, z_e, z_q, vq_loss = self.model(x)
+                loss, info = self.model.loss_function(x_recon, x, z_e, z_q, vq_loss)
+                optimizer.zero_grad()
+                loss.backward()
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.CLIP)
+                optimizer.step()
+                epoch_loss += -loss.item()
+            scheduler.step()
+
+            id_stats  = self.test_eval_VQVAE(self.test_e_iter, self.device)
+            ood_stats = self.test_eval_VQVAE(self.test_n_iter, self.device)
+
+            msg = (f"[VQ-VAE][Epoch {epoch+1}/{self.EPOCH}]  "
+                   f"Loss={epoch_loss/len(self.train_iter):.4f}  "
+                   f"ID recon={id_stats['recon']:.4f}, VQLoss={id_stats['vq_loss']:.4f}  "
+                   f"OOD recon={ood_stats['recon']:.4f}, VQLoss={ood_stats['vq_loss']:.4f}")
+            print_n_txt(f, msg)
+
+            train_losses.append(epoch_loss/len(self.train_iter))
+            id_losses.append(id_stats['loss'])
+
+        torch.save(self.model.state_dict(), f"vqvae_{self.SEED}.pth")
+        return train_losses, id_losses
+
+    def test_eval_VQVAE(self, data_iter, device):
+        with torch.no_grad():
+            recon_sum, vq_sum, total_sum, n = 0.0, 0.0, 0.0, 0
+            self.model.eval()
+            for x, _ in data_iter:
+                x = x.to(device)
+                x_recon, z_e, z_q, vq_loss = self.model(x)
+                loss, info                  = self.model.loss_function(x_recon, x, z_e, z_q, vq_loss)
+                batch_size                  = x.size(0)
+                recon_sum   += info['recon']   * batch_size
+                vq_sum      += info['vq_loss'] * batch_size
+                total_sum   += loss.item()     * batch_size
+                n += batch_size
+            self.model.train()
+            return {
+                'recon':   recon_sum   / n,
+                'vq_loss': vq_sum      / n,
+                'loss':    total_sum   / n
+            }
+
+    def eval_ood_WAE(self, data_iter, device):
+        import torch.nn.functional as F
+        from VAE.variants import compute_mmd
+
+        recon_list, mmd_list = [], []
+        self.model.eval()
+        with torch.no_grad():
+            for batch_in, _ in data_iter:
+                x = batch_in.to(device)
+                x_recon, mu, _ = self.model(x)
+
+                # per-sample reconstruction error
+                recon_err = F.mse_loss(x_recon, x, reduction='none')
+                recon_err = recon_err.view(x.size(0), -1).sum(dim=1)
+
+                # batch-level MMD → replicate per sample
+                prior = torch.randn_like(mu)
+                mmd_val = compute_mmd(mu, prior, sigma=self.model.sigma)
+
+                recon_list += recon_err.cpu().tolist()
+                mmd_list   += [mmd_val.item()] * x.size(0)
+
+        self.model.train()
+        return {'recon_': recon_list, 'mmd_': mmd_list}
+
+
+    def eval_ood_RAE(self, data_iter, device):
+        import torch.nn.functional as F
+
+        recon_list, zreg_list = [], []
+        self.model.eval()
+        with torch.no_grad():
+            for batch_in, _ in data_iter:
+                x = batch_in.to(device)
+                x_recon, mu, _ = self.model(x)
+
+                # per-sample reconstruction error
+                recon_err = F.mse_loss(x_recon, x, reduction='none')
+                recon_err = recon_err.view(x.size(0), -1).sum(dim=1)
+
+                # per-sample z-regularizer
+                zreg = mu.pow(2).sum(dim=1)
+
+                recon_list += recon_err.cpu().tolist()
+                zreg_list  += zreg.cpu().tolist()
+
+        self.model.train()
+        return {'recon_': recon_list, 'zreg_': zreg_list}
+
+
+    def eval_ood_VQVAE(self, data_iter, device):
+        import torch.nn.functional as F
+
+        recon_list, vq_list = [], []
+        self.model.eval()
+        with torch.no_grad():
+            for batch_in, _ in data_iter:
+                x = batch_in.to(device)
+                x_recon, z_e, z_q, vq_loss = self.model(x)
+
+                # per-sample reconstruction error
+                recon_err = F.mse_loss(x_recon, x, reduction='none')
+                recon_err = recon_err.view(x.size(0), -1).sum(dim=1)
+
+                # batch-level VQ loss → replicate per sample
+                recon_list += recon_err.cpu().tolist()
+                vq_list    += [vq_loss.item()] * x.size(0)
+
+        self.model.train()
+        return {'recon_': recon_list, 'vq_': vq_list}
+
 
     def train_mdn(self,f):
         optimizer = optim.Adam(self.model.parameters(),lr=self.lr,weight_decay=self.wd,eps=1e-8)

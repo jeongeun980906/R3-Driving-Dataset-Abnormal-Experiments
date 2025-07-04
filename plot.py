@@ -30,8 +30,17 @@ if args.mode == 'mdn':
     
 elif args.mode == 'vae':
     method = ['recon_','kl_']
+elif args.mode == 'vqvae':
+    method = ['recon_','vq_']
+
+elif args.mode == 'wae':
+    method = ['recon_','mmd_']
+
+elif args.mode == 'rae':
+    method = ['recon_','zreg_']
 else:
     raise NotImplementedError
+
 '''
 Plot NLL, AUROC, AUPR
 '''
